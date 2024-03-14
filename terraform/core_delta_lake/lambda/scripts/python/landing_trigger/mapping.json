@@ -1,0 +1,56 @@
+{
+    "fileMappings": [
+        {
+            "fileName": "service_now/UK-SNowFall-ServiceNow-Incident-Intraday",
+            "destinationPath": "service_now/incident/intraday"
+        },
+        {
+            "fileName": "service_now/UK-SNowFall-ServiceNow-Incident-Daily",
+            "destinationPath": "service_now/incident/daily"
+        },
+        {
+            "fileName": "service_now/UK-SNowFall-ServiceNow-ChangeRequest",
+            "destinationPath": "service_now/change_request"
+        },
+        {
+            "fileName": "service_now/UK-SNowFall-ServiceNow-Location",
+            "destinationPath": "service_now/location"
+        },
+        {
+            "fileName": "service_now/UK-SNowFall-ServiceNow-ProblemRequest",
+            "destinationPath": "service_now/problem_request"
+        },
+        {
+            "fileName": "service_now/UK-SNowFall-ServiceNow-ServiceRequest",
+            "destinationPath": "service_now/service_request"
+        },
+        {
+            "fileName": "connect",
+            "destinationPath": "amazon_connect"
+        },
+        {
+            "fileName": "service_now/UK-SNowFall-ServiceNow-ServiceOffering",
+            "destinationPath": "service_now/service_offering"
+        },
+        {
+            "fileName": "service_now/UK-SNowFall-ServiceNow-SysUser",
+            "destinationPath": "service_now/sys_user"
+        },
+        {
+            "fileName": "service_now/UK-SNowFall-ServiceNow-Sys-User-Group",
+            "destinationPath": "service_now/sys_user_group"
+        },
+        {
+            "fileName": "ods/ODS_SNOWFALL_TRADING_HOURS",
+            "destinationPath": "ods/trading_hours"
+        },
+        {
+            "fileName": "ods/ODS_SNOWFALL_LOCATION_AND_HIERARCY",
+            "destinationPath": "ods/location_hierarchy"
+        },
+        {
+            "fileName": "ods/ODS_SNOWFALL_ADJ_TRADING_HOURS",
+            "destinationPath": "ods/adj_trading_hours"
+        }
+    ]
+}

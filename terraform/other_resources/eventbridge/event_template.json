@@ -1,0 +1,14 @@
+{
+    "source": ["aws.s3"],
+    "detail": {
+      "bucket": {
+        "name": ["eu-central1-${var.environment}-uk-snowfall-raw-${var.account_number}"]
+      },
+      "object": {
+        "key": [{
+          "prefix": "${prefix}"
+        }]
+      }
+    },
+    "detail-type": ["Object Created"]
+}
