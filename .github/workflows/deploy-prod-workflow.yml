@@ -1,0 +1,74 @@
+name: Deployment to Production Environment
+
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  AWS_REGION: eu-central-1
+  ENVIRONMENT: production
+  AWS_ROLE_TO_ASSUME: arn:aws:iam::646303040748:role/UK-MKT-SNowfall-Prod-Deploy-Service-Role
+  STATE_BUCKET: dev-abbas-testing
+  VAR_FILE: nonprod.tfvars
+
+
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Print Variable Values
+      run: |
+        echo "ENVIRONMENT: ${{ env.ENVIRONMENT }}"
+        echo "AWS_ROLE_TO_ASSUME: ${{ env.AWS_ROLE_TO_ASSUME }}"
+        echo "STATE_BUCKET: ${{ env.STATE_BUCKET }}"
+        echo "VAR_FILE: ${{ env.VAR_FILE }}"
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-region: ${{ env.AWS_REGION }}
+        role-to-assume: ${{ env.AWS_ROLE_TO_ASSUME }}
+        role-session-name: GitHubActions
+        web-identity-token-file: ${{ steps.oidc-token.outputs.token }}
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: 1.7.4
+
+    - name: Running the Core Delta Lake Stage
+      run: |
+        cd terraform/core_delta_lake
+        terraform init -backend-config="bucket=${{ env.STATE_BUCKET }}"
+        terraform plan -var-file=${{ env.VAR_FILE }} -out=tfplan
+        terraform apply -auto-approve tfplan
+      env:
+        AWS_REGION: ${{ env.AWS_REGION }}
+
+    - name: Running the Glue Resources Stage
+      run: |
+        cd terraform/glue_resources
+        terraform init -backend-config="bucket=${{ env.STATE_BUCKET }}"
+        terraform plan -var-file=${{ env.VAR_FILE }} -out=tfplan
+        terraform apply -auto-approve tfplan
+      env:
+        AWS_REGION: ${{ env.AWS_REGION }}
+
+    - name: Running the Other Resources Stage
+      run: |
+        cd terraform/other_resources
+        terraform init -backend-config="bucket=${{ env.STATE_BUCKET }}"
+        terraform plan -var-file=${{ env.VAR_FILE }} -out=tfplan
+        terraform apply -auto-approve tfplan
+      env:
+        AWS_REGION: ${{ env.AWS_REGION }}
