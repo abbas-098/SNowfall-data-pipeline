@@ -15,9 +15,5 @@ resource "null_resource" "delete_appflow" {
     provisioner "local-exec" {
         command = "python3 delete_appflow.py"
         when = destroy
-        environment = {
-          LandingBucket = var.landing_bucket_name
-          ConnectorProfileName = var.connector_profile_name
-        }
     }
 }
