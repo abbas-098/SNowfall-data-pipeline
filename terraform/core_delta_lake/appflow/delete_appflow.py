@@ -13,7 +13,7 @@ def delete_flow(flow_name):
         print(f"Failed to delete flow '{flow_name}': {e}")
 
 # Load JSON files
-with open('flow_config.json') as f:
+with open(f'{os.getcwd()}/flow_config.json') as f:
     flows_config = json.load(f)
 
 

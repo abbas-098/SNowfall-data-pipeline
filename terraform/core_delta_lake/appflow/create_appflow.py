@@ -25,7 +25,7 @@ def activate_flow(flow_name):
         print(f"Failed to start flow {flow_name}: {e}")
 
 # Load json files
-with open('flow_config.json') as f:
+with open(f'{os.getcwd()}/flow_config.json') as f:
     flows_config = json.load(f)
 
 
