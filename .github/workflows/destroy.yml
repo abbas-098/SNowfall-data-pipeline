@@ -26,6 +26,12 @@ jobs:
     - name: Checkout Repository
       uses: actions/checkout@v2
 
+    - name: Install Python 3
+      run: sudo apt-get update && sudo apt-get install -y python3
+
+    - name: Install boto3
+      run: python3 -m pip install boto3
+
     - name: Print Variable Values
       run: |
         echo "ENVIRONMENT: ${{ env.ENVIRONMENT }}"
