@@ -1,0 +1,538 @@
+[
+    {
+        "flowName": "UK-SNowFall-ServiceNow-ChangeRequest",
+        "description": "Ingestion of the Change Request data from Service Now",
+        "triggerConfig": {
+            "triggerType": "Scheduled",
+            "triggerProperties": {
+                "Scheduled": {
+                    "scheduleExpression": "cron(0 1 ? * MON-SUN *)",
+                    "dataPullMode": "Incremental",
+                    "timezone": "GMT"
+                }
+            }
+        },
+        "sourceFlowConfig": {
+            "connectorType": "Servicenow",
+            "connectorProfileName": "${SERVICE_NOW_PROFILE}",
+            "sourceConnectorProperties": {
+                "ServiceNow": {
+                    "object": "change_request"
+                }
+            }
+        },
+        "destinationFlowConfigList": [
+            {
+                "connectorType": "S3",
+                "destinationConnectorProperties": {
+                    "S3": {
+                        "bucketName": "${LANDING_BUCKET_NAME}",
+                        "bucketPrefix": "service_now",
+                        "s3OutputFormatConfig": {
+                            "aggregationConfig": {
+                                "aggregationType": "SingleFile"
+                            },
+                            "prefixConfig": {
+                                "prefixFormat": "DAY",
+                                "prefixType": "PATH_AND_FILENAME"
+                            },
+                            "fileType": "JSON"
+                        }
+                    }
+                }
+            }
+        ],
+        "tasks": [
+            {
+                "sourceFields": ["sys_updated_on"],
+                "taskType": "Filter",
+                "connectorOperator": {
+                    "ServiceNow": "GREATER_THAN_OR_EQUAL_TO"
+                },
+                "taskProperties": {
+                    "DATA_TYPE": "datetime",
+                    "VALUE": "1707696000000"
+                }
+            },
+            {
+                "taskType": "Map_all",
+                "sourceFields": []
+            }
+        ]
+    },
+
+    {
+        "flowName": "UK-SNowFall-ServiceNow-Incident-Daily",
+        "description": "Ingestion of the Incidents data from Service Now",
+        "triggerConfig": {
+            "triggerType": "Scheduled",
+            "triggerProperties": {
+                "Scheduled": {
+                    "scheduleExpression": "cron(0 2 ? * MON-SUN *)",
+                    "dataPullMode": "Incremental",
+                    "timezone": "GMT"
+                }
+            }
+        },
+        "sourceFlowConfig": {
+            "connectorType": "Servicenow",
+            "connectorProfileName": "${SERVICE_NOW_PROFILE}",
+            "sourceConnectorProperties": {
+                "ServiceNow": {
+                    "object": "incident"
+                }
+            }
+        },
+        "destinationFlowConfigList": [
+            {
+                "connectorType": "S3",
+                "destinationConnectorProperties": {
+                    "S3": {
+                        "bucketName": "${LANDING_BUCKET_NAME}",
+                        "bucketPrefix": "service_now",
+                        "s3OutputFormatConfig": {
+                            "aggregationConfig": {
+                                "aggregationType": "SingleFile"
+                            },
+                            "prefixConfig": {
+                                "prefixFormat": "DAY",
+                                "prefixType": "PATH_AND_FILENAME"
+                            },
+                            "fileType": "JSON"
+                        }
+                    }
+                }
+            }
+        ],
+        "tasks": [
+            {
+                "sourceFields": ["sys_updated_on"],
+                "taskType": "Filter",
+                "connectorOperator": {
+                    "ServiceNow": "GREATER_THAN_OR_EQUAL_TO"
+                },
+                "taskProperties": {
+                    "DATA_TYPE": "datetime",
+                    "VALUE": "1707696000000"
+                }
+            },
+            {
+                "taskType": "Map_all",
+                "sourceFields": []
+            }
+        ]
+    },
+
+    {
+        "flowName": "UK-SNowFall-ServiceNow-Incident-Intraday",
+        "description": "Ingestion of the Incidents data from Service Now",
+        "triggerConfig": {
+            "triggerType": "Scheduled",
+            "triggerProperties": {
+                "Scheduled": {
+                    "scheduleExpression": "cron(0/15 6-20 ? * MON-FRI *)",
+                    "dataPullMode": "Incremental",
+                    "timezone": "GMT"
+                }
+            }
+        },
+        "sourceFlowConfig": {
+            "connectorType": "Servicenow",
+            "connectorProfileName": "${SERVICE_NOW_PROFILE}",
+            "sourceConnectorProperties": {
+                "ServiceNow": {
+                    "object": "incident"
+                }
+            }
+        },
+        "destinationFlowConfigList": [
+            {
+                "connectorType": "S3",
+                "destinationConnectorProperties": {
+                    "S3": {
+                        "bucketName": "${LANDING_BUCKET_NAME}",
+                        "bucketPrefix": "service_now",
+                        "s3OutputFormatConfig": {
+                            "aggregationConfig": {
+                                "aggregationType": "SingleFile"
+                            },
+                            "prefixConfig": {
+                                "prefixFormat": "DAY",
+                                "prefixType": "PATH_AND_FILENAME"
+                            },
+                            "fileType": "JSON"
+                        }
+                    }
+                }
+            }
+        ],
+        "tasks": [
+            {
+                "sourceFields": ["sys_updated_on"],
+                "taskType": "Filter",
+                "connectorOperator": {
+                    "ServiceNow": "GREATER_THAN_OR_EQUAL_TO"
+                },
+                "taskProperties": {
+                    "DATA_TYPE": "datetime",
+                    "VALUE": "1707696000000"
+                }
+            },
+            {
+                "taskType": "Map_all",
+                "sourceFields": []
+            }
+        ]
+    },
+
+    {
+        "flowName": "UK-SNowFall-ServiceNow-Location",
+        "description": "Ingestion of the Location data from Service Now",
+        "triggerConfig": {
+            "triggerType": "Scheduled",
+            "triggerProperties": {
+                "Scheduled": {
+                    "scheduleExpression": "cron(0 1 ? * MON-SUN *)",
+                    "dataPullMode": "Incremental",
+                    "timezone": "GMT"
+                }
+            }
+        },
+        "sourceFlowConfig": {
+            "connectorType": "Servicenow",
+            "connectorProfileName": "${SERVICE_NOW_PROFILE}",
+            "sourceConnectorProperties": {
+                "ServiceNow": {
+                    "object": "cmn_location"
+                }
+            }
+        },
+        "destinationFlowConfigList": [
+            {
+                "connectorType": "S3",
+                "destinationConnectorProperties": {
+                    "S3": {
+                        "bucketName": "${LANDING_BUCKET_NAME}",
+                        "bucketPrefix": "service_now",
+                        "s3OutputFormatConfig": {
+                            "aggregationConfig": {
+                                "aggregationType": "SingleFile"
+                            },
+                            "prefixConfig": {
+                                "prefixFormat": "DAY",
+                                "prefixType": "PATH_AND_FILENAME"
+                            },
+                            "fileType": "JSON"
+                        }
+                    }
+                }
+            }
+        ],
+        "tasks": [
+            {
+                "taskType": "Map_all",
+                "sourceFields": []
+            }
+        ]
+    },
+
+    {
+        "flowName": "UK-SNowFall-ServiceNow-ProblemRequest",
+        "description": "Ingestion of the Problem Request from Service Now",
+        "triggerConfig": {
+            "triggerType": "Scheduled",
+            "triggerProperties": {
+                "Scheduled": {
+                    "scheduleExpression": "cron(0 1 ? * MON-SUN *)",
+                    "dataPullMode": "Incremental",
+                    "timezone": "GMT"
+                }
+            }
+        },
+        "sourceFlowConfig": {
+            "connectorType": "Servicenow",
+            "connectorProfileName": "${SERVICE_NOW_PROFILE}",
+            "sourceConnectorProperties": {
+                "ServiceNow": {
+                    "object": "problem"
+                }
+            }
+        },
+        "destinationFlowConfigList": [
+            {
+                "connectorType": "S3",
+                "destinationConnectorProperties": {
+                    "S3": {
+                        "bucketName": "${LANDING_BUCKET_NAME}",
+                        "bucketPrefix": "service_now",
+                        "s3OutputFormatConfig": {
+                            "aggregationConfig": {
+                                "aggregationType": "SingleFile"
+                            },
+                            "prefixConfig": {
+                                "prefixFormat": "DAY",
+                                "prefixType": "PATH_AND_FILENAME"
+                            },
+                            "fileType": "JSON"
+                        }
+                    }
+                }
+            }
+        ],
+        "tasks": [
+            {
+                "sourceFields": ["sys_updated_on"],
+                "taskType": "Filter",
+                "connectorOperator": {
+                    "ServiceNow": "GREATER_THAN_OR_EQUAL_TO"
+                },
+                "taskProperties": {
+                    "DATA_TYPE": "datetime",
+                    "VALUE": "1707696000000"
+                }
+            },
+            {
+                "taskType": "Map_all",
+                "sourceFields": []
+            }
+        ]
+    },
+
+    {
+        "flowName": "UK-SNowFall-ServiceNow-ServiceOffering",
+        "description": "Ingestion of the Service Offering data from Service Now",
+        "triggerConfig": {
+            "triggerType": "Scheduled",
+            "triggerProperties": {
+                "Scheduled": {
+                    "scheduleExpression": "cron(0 1 ? * MON-SUN *)",
+                    "dataPullMode": "Incremental",
+                    "timezone": "GMT"
+                }
+            }
+        },
+        "sourceFlowConfig": {
+            "connectorType": "Servicenow",
+            "connectorProfileName": "${SERVICE_NOW_PROFILE}",
+            "sourceConnectorProperties": {
+                "ServiceNow": {
+                    "object": "service_offering"
+                }
+            }
+        },
+        "destinationFlowConfigList": [
+            {
+                "connectorType": "S3",
+                "destinationConnectorProperties": {
+                    "S3": {
+                        "bucketName": "${LANDING_BUCKET_NAME}",
+                        "bucketPrefix": "service_now",
+                        "s3OutputFormatConfig": {
+                            "aggregationConfig": {
+                                "aggregationType": "SingleFile"
+                            },
+                            "prefixConfig": {
+                                "prefixFormat": "DAY",
+                                "prefixType": "PATH_AND_FILENAME"
+                            },
+                            "fileType": "JSON"
+                        }
+                    }
+                }
+            }
+        ],
+        "tasks": [
+            {
+                "taskType": "Map_all",
+                "sourceFields": []
+            }
+        ]
+    },
+
+    {
+        "flowName": "UK-SNowFall-ServiceNow-ServiceRequest",
+        "description": "Ingestion of the Service Request from Service Now",
+        "triggerConfig": {
+            "triggerType": "Scheduled",
+            "triggerProperties": {
+                "Scheduled": {
+                    "scheduleExpression": "cron(0 1 ? * MON-SUN *)",
+                    "dataPullMode": "Incremental",
+                    "timezone": "GMT"
+                }
+            }
+        },
+        "sourceFlowConfig": {
+            "connectorType": "Servicenow",
+            "connectorProfileName": "${SERVICE_NOW_PROFILE}",
+            "sourceConnectorProperties": {
+                "ServiceNow": {
+                    "object": "sc_req_item"
+                }
+            }
+        },
+        "destinationFlowConfigList": [
+            {
+                "connectorType": "S3",
+                "destinationConnectorProperties": {
+                    "S3": {
+                        "bucketName": "${LANDING_BUCKET_NAME}",
+                        "bucketPrefix": "service_now",
+                        "s3OutputFormatConfig": {
+                            "aggregationConfig": {
+                                "aggregationType": "SingleFile"
+                            },
+                            "prefixConfig": {
+                                "prefixFormat": "DAY",
+                                "prefixType": "PATH_AND_FILENAME"
+                            },
+                            "fileType": "JSON"
+                        }
+                    }
+                }
+            }
+        ],
+        "tasks": [
+            {
+                "sourceFields": ["sys_updated_on"],
+                "taskType": "Filter",
+                "connectorOperator": {
+                    "ServiceNow": "GREATER_THAN_OR_EQUAL_TO"
+                },
+                "taskProperties": {
+                    "DATA_TYPE": "datetime",
+                    "VALUE": "1707696000000"
+                }
+            },
+            {
+                "taskType": "Map_all",
+                "sourceFields": []
+            }
+        ]
+    },
+
+    {
+        "flowName": "UK-SNowFall-ServiceNow-SysUser",
+        "description": "Ingestion of the Sys User Data from Service Now",
+        "triggerConfig": {
+            "triggerType": "Scheduled",
+            "triggerProperties": {
+                "Scheduled": {
+                    "scheduleExpression": "cron(0 1 ? * MON-SUN *)",
+                    "dataPullMode": "Incremental",
+                    "timezone": "GMT"
+                }
+            }
+        },
+        "sourceFlowConfig": {
+            "connectorType": "Servicenow",
+            "connectorProfileName": "${SERVICE_NOW_PROFILE}",
+            "sourceConnectorProperties": {
+                "ServiceNow": {
+                    "object": "sys_user"
+                }
+            }
+        },
+        "destinationFlowConfigList": [
+            {
+                "connectorType": "S3",
+                "destinationConnectorProperties": {
+                    "S3": {
+                        "bucketName": "${LANDING_BUCKET_NAME}",
+                        "bucketPrefix": "service_now",
+                        "s3OutputFormatConfig": {
+                            "aggregationConfig": {
+                                "aggregationType": "SingleFile"
+                            },
+                            "prefixConfig": {
+                                "prefixFormat": "DAY",
+                                "prefixType": "PATH_AND_FILENAME"
+                            },
+                            "fileType": "JSON"
+                        }
+                    }
+                }
+            }
+        ],
+        "tasks": [
+            {
+                "sourceFields": ["sys_updated_on"],
+                "taskType": "Filter",
+                "connectorOperator": {
+                    "ServiceNow": "GREATER_THAN_OR_EQUAL_TO"
+                },
+                "taskProperties": {
+                    "DATA_TYPE": "datetime",
+                    "VALUE": "1707696000000"
+                }
+            },
+            {
+                "taskType": "Map_all",
+                "sourceFields": []
+            }
+        ]
+    },
+
+    {
+        "flowName": "UK-SNowFall-ServiceNow-Sys-User-Group",
+        "description": "Ingestion of the Sys User Group Data from Service Now",
+        "triggerConfig": {
+            "triggerType": "Scheduled",
+            "triggerProperties": {
+                "Scheduled": {
+                    "scheduleExpression": "cron(0 1 ? * MON-SUN *)",
+                    "dataPullMode": "Incremental",
+                    "timezone": "GMT"
+                }
+            }
+        },
+        "sourceFlowConfig": {
+            "connectorType": "Servicenow",
+            "connectorProfileName": "${SERVICE_NOW_PROFILE}",
+            "sourceConnectorProperties": {
+                "ServiceNow": {
+                    "object": "sys_user_group"
+                }
+            }
+        },
+        "destinationFlowConfigList": [
+            {
+                "connectorType": "S3",
+                "destinationConnectorProperties": {
+                    "S3": {
+                        "bucketName": "${LANDING_BUCKET_NAME}",
+                        "bucketPrefix": "service_now",
+                        "s3OutputFormatConfig": {
+                            "aggregationConfig": {
+                                "aggregationType": "SingleFile"
+                            },
+                            "prefixConfig": {
+                                "prefixFormat": "DAY",
+                                "prefixType": "PATH_AND_FILENAME"
+                            },
+                            "fileType": "JSON"
+                        }
+                    }
+                }
+            }
+        ],
+        "tasks": [
+            {
+                "sourceFields": ["sys_updated_on"],
+                "taskType": "Filter",
+                "connectorOperator": {
+                    "ServiceNow": "GREATER_THAN_OR_EQUAL_TO"
+                },
+                "taskProperties": {
+                    "DATA_TYPE": "datetime",
+                    "VALUE": "1707696000000"
+                }
+            },
+            {
+                "taskType": "Map_all",
+                "sourceFields": []
+            }
+        ]
+    }
+
+]
