@@ -1,7 +1,9 @@
 import boto3
 import json
+import os
 
 client = boto3.client('appflow', region_name='eu-central-1')
+config_file_path = f"{os.getcwd()}/appflow/flow_config.json"
 
 def delete_flow(flow_name):
     try:
@@ -13,7 +15,7 @@ def delete_flow(flow_name):
         print(f"Failed to delete flow '{flow_name}': {e}")
 
 # Load JSON files
-with open(f'{os.getcwd()}/flow_config.json') as f:
+with open(config_file_path) as f:
     flows_config = json.load(f)
 
 

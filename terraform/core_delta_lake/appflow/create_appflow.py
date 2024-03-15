@@ -5,6 +5,7 @@ import os
 
 
 client = boto3.client('appflow', region_name='eu-central-1')
+config_file_path = f"{os.getcwd()}/appflow/flow_config.json"
 
 def create_flow_from_config(flow_config):
     try:
@@ -25,7 +26,7 @@ def activate_flow(flow_name):
         print(f"Failed to start flow {flow_name}: {e}")
 
 # Load json files
-with open(f'{os.getcwd()}/flow_config.json') as f:
+with open(config_file_path) as f:
     flows_config = json.load(f)
 
 
