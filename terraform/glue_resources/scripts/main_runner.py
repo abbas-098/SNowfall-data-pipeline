@@ -18,6 +18,7 @@ class RunManager:
         self.glue_context = GlueContext(self.spark_context)
         self.spark = self.glue_context.spark_session
         self.job = Job(self.glue_context)
+        #self.spark.conf.set("spark.sql.shuffle.partitions", "100") 
 
     def run(self, group, dataset):
         #TODO ANY PRIOR STEPS BEFORE WE PROCESS
@@ -51,8 +52,8 @@ class RunManager:
         return ''.join(x.title() for x in components)
 
 def main():
-    group = "processed" #TODO THIS WOULD BE WHERE YOU GET YOUR ENV VARS
-    dataset = "incident_intraday"
+    group = "preparation" #TODO THIS WOULD BE WHERE YOU GET YOUR ENV VARS
+    dataset = "locations"
     sc = SparkContext.getOrCreate()
     
     try:

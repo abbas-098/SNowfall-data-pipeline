@@ -1,7 +1,7 @@
 from snowfall_pipeline.common_utilities.transform_base import TransformBase
 
 
-class ProcessedIncidentIntraday(TransformBase):
+class ProcessedLocations(TransformBase):
 
 
     def get_data(self):
