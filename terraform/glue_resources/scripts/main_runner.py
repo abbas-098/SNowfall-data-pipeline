@@ -18,7 +18,6 @@ class RunManager:
         self.glue_context = GlueContext(self.spark_context)
         self.spark = self.glue_context.spark_session
         self.job = Job(self.glue_context)
-        #self.spark.conf.set("spark.sql.shuffle.partitions", "100") 
 
     def run(self, group, dataset):
         #TODO ANY PRIOR STEPS BEFORE WE PROCESS
