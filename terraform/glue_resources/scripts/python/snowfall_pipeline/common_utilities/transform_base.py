@@ -36,10 +36,10 @@ class TransformBase:
         preparation_bucket_name (str): Name of the preparation bucket.
         processed_bucket_name (str): Name of the processed bucket.
         semantic_bucket_name (str): Name of the semantic bucket.
+        datasets (str) : Dataset name pulled from glue workflow propeties
     """
 
     def __init__(self,spark,sc,glueContext):
-        self._initial_message_printed()
         self.logger = SnowfallLogger.get_logger()
         self.spark = spark
         self.sc = sc
