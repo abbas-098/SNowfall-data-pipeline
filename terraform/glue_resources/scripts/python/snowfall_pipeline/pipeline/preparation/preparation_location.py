@@ -1,4 +1,5 @@
 from snowfall_pipeline.common_utilities.transform_base import TransformBase
+from snowfall_pipeline.common_utilities.decorators import transformation_timer
 from delta.tables import *
 
 
@@ -83,7 +84,7 @@ class PreparationLocation(TransformBase):
         return df
 
 
-
+    @transformation_timer
     def save_data(self, df):
         """
         Save DataFrame to an S3 location and create/update a Delta table if needed.
