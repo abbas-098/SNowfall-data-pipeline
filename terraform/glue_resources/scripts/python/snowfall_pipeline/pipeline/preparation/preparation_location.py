@@ -34,3 +34,8 @@ class PreparationLocation(TransformBase):
     def save_data(self,df):
         "Abstract method which will be overridden when this class is inherited"
         pass
+
+    def pipeline_flow(self):
+        df = self.get_data()
+        transformed_df = self.transform_data(df)
+        self.save_data(transformed_df)
