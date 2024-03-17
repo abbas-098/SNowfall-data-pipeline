@@ -96,3 +96,33 @@ module "incident_intraday_module" {
 
 }
 
+############ Glue Data Catalog #########
+resource "aws_glue_catalog_database" "preparation_database" {
+  name = "uk_snowfall_preparation"
+  description = "Datasets that have been cleansed and validated and remain at the same level they were initally sourced"
+
+  lifecycle {
+    ignore_changes = [name,description]
+    prevent_destroy = false  # Allow Terraform to delete the database
+  }
+}
+
+resource "aws_glue_catalog_database" "processed_database" {
+  name = "uk_snowfall_processed"
+  description = "Datasets that have been transformed and enriched for ease of use"
+
+  lifecycle {
+    ignore_changes = [name,description]
+    prevent_destroy = false  # Allow Terraform to delete the database
+  }
+}
+
+resource "aws_glue_catalog_database" "semantic_database" {
+  name = "uk_snowfall_semantic"
+  description = "Datasets that have been aggregated and made available for reporting and analytics, with buisness logic built in"
+
+  lifecycle {
+    ignore_changes = [name,description]
+    prevent_destroy = false  # Allow Terraform to delete the database
+  }
+}

@@ -4,7 +4,7 @@ from snowfall_pipeline.common_utilities.decorators import transformation_timer
 
 
 from pyspark.sql import functions as F
-from pyspark.sql.types import StringType
+from pyspark.sql.types import StringType, StructType
 
 
 from awsglue.dynamicframe import DynamicFrame
@@ -29,6 +29,8 @@ class TransformBase:
         sc (SparkContext): The Spark context.
         glueContext (GlueContext): The Glue context.
         aws_instance (class instance): Initialise the AwsUtilities class so that the methods are available to use instead of having to import for each class
+        sns_trigger (bool) : Checks whethers the SNS notification needs to be triggered
+        athena_trigger (bool) : Checks whethers athena table needs to be created
         account_number (str): Account number that we utilize in AWS used to generate the bucket names.
         environment (str): Environment that we utilize in AWS used to generate the bucket names.
         full_config (dict): Full configuration read from the script_config file in the common_utilities folders.
@@ -47,13 +49,14 @@ class TransformBase:
         self._initial_message_printed()
         self.aws_instance = AwsUtilities()
         self.sns_trigger = False
+        self.athena_trigger = False
         self.account_number = self.aws_instance.get_glue_env_var('ACCOUNT_NUMBER')
-        self.enviornment = self.aws_instance.get_glue_env_var('ENVIRONMENT')
+        self.environment = self.aws_instance.get_glue_env_var('ENVIRONMENT')
         self.full_configs = self.aws_instance.reading_json_from_zip()
-        self.raw_bucket_name = f"eu-central1-{self.enviornment}-uk-snowfall-raw-{self.account_number}"
-        self.preparation_bucket_name = f"eu-central1-{self.enviornment}-uk-snowfall-preparation-{self.account_number}"
-        self.processed_bucket_name = f"eu-central1-{self.enviornment}-uk-snowfall-processed-{self.account_number}"
-        self.semantic_bucket_name = f"eu-central1-{self.enviornment}-uk-snowfall-semantic-{self.account_number}"
+        self.raw_bucket_name = f"eu-central1-{self.environment}-uk-snowfall-raw-{self.account_number}"
+        self.preparation_bucket_name = f"eu-central1-{self.environment}-uk-snowfall-preparation-{self.account_number}"
+        self.processed_bucket_name = f"eu-central1-{self.environment}-uk-snowfall-processed-{self.account_number}"
+        self.semantic_bucket_name = f"eu-central1-{self.environment}-uk-snowfall-semantic-{self.account_number}"
         self.datasets = self.aws_instance.get_workflow_properties('DATASET')
 
 
@@ -295,4 +298,46 @@ class TransformBase:
         """
         columns_to_drop = ["DataQualityRulesPass", "DataQualityRulesFail", "DataQualityRulesSkip", "DataQualityEvaluationResult"]
         return df.drop(*columns_to_drop)
+    
+    @transformation_timer
+    def transform_struct_to_string(self, df):
+        """
+        Transform struct fields in the DataFrame to JSON strings.
+        
+        Parameters:
+        - df (DataFrame): Input DataFrame with possibly nested struct fields.
+        
+        Returns:
+        - DataFrame: DataFrame with struct fields converted to JSON strings.
+        """
+        for field in df.schema.fields:
+            # Check if the field is of StructType
+            if isinstance(field.dataType, StructType):
+                # Convert the struct field to a JSON String
+                df = df.withColumn(field.name, F.to_json(F.col(field.name)))
+        return df
+
+    @transformation_timer
+    def adding_cdc_columns(self,df):
+        """
+        Add change data capture (CDC) columns to the DataFrame.
+
+        This function adds two columns to the DataFrame:
+        - 'cdc_timestamp': Current timestamp indicating the time of data capture.
+        - 'cdc_glue_workflow_id': Glue workflow ID retrieved from AWS environment variables.
+
+        Parameters:
+        - df (DataFrame): Input DataFrame.
+
+        Returns:
+        - DataFrame: DataFrame with CDC columns added.
+        """
+
+        # Add current timestamp column
+        df = df.withColumn("cdc_timestamp",F.current_timestamp())
+
+        # Add glue workflow ID
+        df = df.withColumn("cdc_glue_workflow_id",F.lit(self.aws_instance.get_glue_env_var('WORKFLOW_RUN_ID')))
+
+        return df
 

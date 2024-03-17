@@ -114,6 +114,36 @@ class AwsUtilities:
             self.logger.error(f"Error in get_files_in_s3_path: {e}")
             return []
         return files_list
+    
+    
+    def check_if_delta_table_exists(self,s3_path):
+        """
+        Check if a Delta table exists in the specified S3 path.
+
+        Parameters:
+        - s3_path (str): The S3 path to check for Delta table existence.
+
+        Returns:
+        - bool: True if a Delta table exists, False otherwise.
+        """
+        # Parse bucket name and prefix from the s3 path
+        if s3_path.startswith('s3://'):
+            s3_path = s3_path[5:]
+        bucket_name, prefix = s3_path.split('/', 1)
+
+        # Initialize AWS S3 client
+        s3_client = boto3.client('s3')
+
+        # List objects in the specified S3 path
+        response = s3_client.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
+
+        # Check if any object ends with '_delta_log/'
+        for obj in response.get('Contents', []):
+            if obj['Key'].endswith('_delta_log/'):
+                self.logger.info(f"Delta table exists at: {s3_path}")
+                return True
+        self.logger.info(f"Delta table does not exist at: {s3_path}")
+        return False
 
 
     def move_s3_object(self, bucket_name, source_object_key, destination_object_key):
@@ -144,7 +174,7 @@ class AwsUtilities:
             if c.response['Error']['Code'] == 'NoSuchKey':
                 self.logger.error(f"The source object '{source_object_key}' does not exist in S3.")
             else:
-                self.logger.error(f"Error in move_s3_object: {e}")
+                self.logger.error(f"Error in move_s3_object: {c}")
                 raise c
         except Exception as e:
             raise e
