@@ -101,16 +101,31 @@ class PreparationLocation(TransformBase):
         if not self.aws_instance.check_if_delta_table_exists(save_output_path):
             self.athena_trigger = True
             
-        # Determine whether to create or append to the Delta table
+        # Determine whether to create or merge to the Delta table
         if self.athena_trigger:
             # Create the Delta table
             df.write.format("delta").mode("overwrite").save(save_output_path)
 
             # Execute Athena query to create the table
             self.aws_instance.create_athena_delta_table('preparation', 'service_now_location', save_output_path, self.athena_output_path)
+            
         else:
-            # Append data to the Delta table
-            df.write.format("delta").mode("append").save(save_output_path)
+
+            # Merge data to the Delta table
+            df.createOrReplaceTempView("temp_view")
+            sql_query = f"""
+            MERGE INTO delta.`{save_output_path}` AS target
+            USING temp_view AS source
+            ON target.full_name = source.full_name
+            AND target.sys_created_on = source.sys_created_on
+            WHEN MATCHED THEN
+            UPDATE SET *
+            WHEN NOT MATCHED THEN
+            INSERT *
+            """
+            self.logger.info(f'Starting merge query: {sql_query}')
+            self.spark.sql(sql_query)
+
         
         # Move files to the Archive folder
         for file_name in self.list_of_files:
