@@ -112,7 +112,7 @@ class TransformBase:
 
 
     @transformation_timer
-    def data_quality_check(self, df, dq_rules):
+    def data_quality_check(self, df, dq_rules,bucket_name,s3_path_prefix,output_file_type):
          """Perform data quality checks on the DataFrame and returns the passed rows.
 
          Args:
@@ -175,7 +175,7 @@ class TransformBase:
                  raise Exception("Data Quality for the whole dataset has failed.")
 
          if not df_failed.isEmpty():
-             self.error_handling_after_dq(df_failed)
+             self.error_handling_after_dq(df_failed,bucket_name,s3_path_prefix,output_file_type)
 
          return df_passed
         
