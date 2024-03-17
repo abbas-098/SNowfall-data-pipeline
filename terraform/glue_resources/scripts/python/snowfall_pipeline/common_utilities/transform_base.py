@@ -54,7 +54,7 @@ class TransformBase:
         self.preparation_bucket_name = f"eu-central1-{self.enviornment}-uk-snowfall-preparation-{self.account_number}"
         self.processed_bucket_name = f"eu-central1-{self.enviornment}-uk-snowfall-processed-{self.account_number}"
         self.semantic_bucket_name = f"eu-central1-{self.enviornment}-uk-snowfall-semantic-{self.account_number}"
-        self.datasets = self.aws_instance.get_workflow_properties('DATASETS')
+        self.datasets = self.aws_instance.get_workflow_properties('DATASET')
 
 
 

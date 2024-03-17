@@ -6,6 +6,7 @@ from pyspark.context import SparkContext
 from awsglue.context import GlueContext
 from awsglue.job import Job
 from snowfall_pipeline.common_utilities.snowfall_logger import SnowfallLogger
+from snowfall_pipeline.common_utilities.aws_utilities import AwsUtilities
 
 logger = SnowfallLogger.get_logger()
   
@@ -51,8 +52,9 @@ class RunManager:
         return ''.join(x.title() for x in components)
 
 def main():
-    group = "preparation" #TODO THIS WOULD BE WHERE YOU GET YOUR ENV VARS
-    dataset = "locations"
+    aws_instance = AwsUtilities()
+    group = aws_instance.get_workflow_properties('GROUP')
+    dataset = aws_instance.get_workflow_properties('DATASET')
     sc = SparkContext.getOrCreate()
     
     try:
