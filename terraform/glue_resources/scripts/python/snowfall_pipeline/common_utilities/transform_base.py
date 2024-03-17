@@ -72,9 +72,11 @@ class TransformBase:
         pass
 
 
-    def pipeline_flow(self):
+    def process_flow(self):
         "Abstract method which runs each pipeline in order"
-        pass
+        df = self.get_data()
+        transformed_df = self.transform_data(df)
+        self.save_data(transformed_df)
 
 
     def _initial_message_printed(self):
