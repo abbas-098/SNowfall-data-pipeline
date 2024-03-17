@@ -33,8 +33,6 @@ class PreparationLocation(TransformBase):
             source_df = self.spark.read.json(f"s3://{self.raw_bucket_name}/{self.file_path}/")
         else:
             message = f"The file path: s3://{self.raw_bucket_name}/{self.file_path}/ is empty."
-            # Since file is empty, just need to send sns.
-            self.aws_instance.send_sns_message(message)
             raise Exception(message)
         
         # Extract the number of records processed from AppFlow

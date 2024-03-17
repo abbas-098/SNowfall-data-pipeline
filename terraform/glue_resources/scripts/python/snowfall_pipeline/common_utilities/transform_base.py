@@ -88,6 +88,8 @@ class TransformBase:
             if 'Preparation' in self.__class__.__name__:
                 for i in self.list_of_files:
                     self.aws_instance.move_s3_object(self.raw_bucket_name, i, f"error/{i}") 
+                    self.aws_instance.send_sns_message(e)
+                raise e
             else:
                 self.aws_instance.send_sns_message(e)
 
