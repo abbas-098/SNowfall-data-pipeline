@@ -117,6 +117,7 @@ class PreparationLocation(TransformBase):
             USING temp_view AS source
             ON target.full_name = source.full_name
             AND target.sys_created_on = source.sys_created_on
+            AND target.sys_id = source.sys_id
             WHEN MATCHED THEN
             UPDATE SET *
             WHEN NOT MATCHED THEN

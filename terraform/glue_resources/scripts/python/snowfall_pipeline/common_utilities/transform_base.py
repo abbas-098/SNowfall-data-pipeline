@@ -347,7 +347,7 @@ class TransformBase:
         """
 
         # Add current timestamp column
-        df = df.withColumn("cdc_timestamp",F.current_timestamp())
+        df = df.withColumn("cdc_timestamp",F.date_format(F.current_timestamp(), "yyyy-MM-dd HH:mm:ss"))
 
         # Add glue workflow ID
         df = df.withColumn("cdc_glue_workflow_id",F.lit(self.aws_instance.get_glue_env_var('WORKFLOW_RUN_ID')))
