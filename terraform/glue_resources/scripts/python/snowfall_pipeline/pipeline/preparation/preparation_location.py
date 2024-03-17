@@ -1,4 +1,5 @@
 from snowfall_pipeline.common_utilities.transform_base import TransformBase
+from delta.tables import *
 
 
 class PreparationLocation(TransformBase):
@@ -65,37 +66,57 @@ class PreparationLocation(TransformBase):
         Returns:
         - DataFrame: Transformed DataFrame.
 
-        Raises:
-        - Exception: If an error occurs during the transformation process. In case of an error,
-                    files from the list_of_files are moved to the 'error' folder in the S3 bucket,
-                    and an SNS message is sent with the error details.
         """
-        try:
-            # Step 1: Remove duplicate records
-            self.logger.info('Removing duplicate records')
-            df = df.dropDuplicates()
-            self.logger.info(f'Number of records in dataframe after dropping duplicates: {df.count()}')
 
-            # Step 2: Data quality check
-            df = self.data_quality_check(df, self.dq_rule, self.raw_bucket_name, self.file_path, 'json')
+        # Step 1: Remove duplicate records
+        self.logger.info('Removing duplicate records')
+        df = df.dropDuplicates()
+        self.logger.info(f'Number of records in dataframe after dropping duplicates: {df.count()}')
 
-            # Step 3: Convert all structs to strings
-            df = self.transform_struct_to_string(df)
+        # Step 2: Data quality check
+        df = self.data_quality_check(df, self.dq_rule, self.raw_bucket_name, self.file_path, 'json')
 
-            # Step 4: Add CDC columns
-            df = self.adding_cdc_columns(df)
+        # Step 3: Convert all structs to strings
+        df = self.transform_struct_to_string(df)
 
-        except Exception as e:
-            for i in self.list_of_files:
-                self.aws_instance.move_s3_object(self.raw_bucket_name, i, f"error/{i}")  
-            self.aws_instance.send_sns_message(e)  
-            raise e 
+        # Step 4: Add CDC columns
+        df = self.adding_cdc_columns(df)
 
         return df
 
 
 
-    def save_data(self,df):
-        "Abstract method which will be overridden when this class is inherited"
-        pass
+    def save_data(self, df):
+        """
+        Save DataFrame to an S3 location and create/update a Delta table if needed.
+
+        Parameters:
+        - df (DataFrame): Input DataFrame to be saved.
+
+        """
+        # Define the S3 save path
+        save_output_path = f"s3://{self.preparation_bucket_name}/service_now/location/"
+
+        # Check if Delta table needs to be created
+        if not self.aws_instance.check_if_delta_table_exists(save_output_path):
+            self.athena_trigger = True
+            
+        # Determine whether to create or append to the Delta table
+        if self.athena_trigger:
+            # Create the Delta table
+            df.write.format("delta").mode("overwrite").save(save_output_path)
+
+            # Execute Athena query to create the table
+            self.aws_instance.create_athena_delta_table('preparation', 'service_now_location', save_output_path, self.athena_output_path)
+        else:
+            # Append data to the Delta table
+            df.write.format("delta").mode("append").save(save_output_path)
+        
+        # Move files to the Archive folder
+        for file_name in self.list_of_files:
+            self.aws_instance.move_s3_object(self.raw_bucket_name, file_name, f"archive/{file_name}")
+        
+        self.logger.info(f'Finished running the {self.__class__.__name__} pipeline!')
+
+
 

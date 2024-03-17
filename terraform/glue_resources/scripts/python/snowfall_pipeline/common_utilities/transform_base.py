@@ -31,6 +31,7 @@ class TransformBase:
         aws_instance (class instance): Initialise the AwsUtilities class so that the methods are available to use instead of having to import for each class
         sns_trigger (bool) : Checks whethers the SNS notification needs to be triggered
         athena_trigger (bool) : Checks whethers athena table needs to be created
+        list_of_files : Currently set at None, but when each class inherits this it will set a value. Set here so I can use logic to move files
         account_number (str): Account number that we utilize in AWS used to generate the bucket names.
         environment (str): Environment that we utilize in AWS used to generate the bucket names.
         full_config (dict): Full configuration read from the script_config file in the common_utilities folders.
@@ -50,6 +51,7 @@ class TransformBase:
         self.aws_instance = AwsUtilities()
         self.sns_trigger = False
         self.athena_trigger = False
+        self.list_of_files = None
         self.account_number = self.aws_instance.get_glue_env_var('ACCOUNT_NUMBER')
         self.environment = self.aws_instance.get_glue_env_var('ENVIRONMENT')
         self.full_configs = self.aws_instance.reading_json_from_zip()
@@ -57,6 +59,7 @@ class TransformBase:
         self.preparation_bucket_name = f"eu-central1-{self.environment}-uk-snowfall-preparation-{self.account_number}"
         self.processed_bucket_name = f"eu-central1-{self.environment}-uk-snowfall-processed-{self.account_number}"
         self.semantic_bucket_name = f"eu-central1-{self.environment}-uk-snowfall-semantic-{self.account_number}"
+        self.athena_output_path = f"eu-central1-{self.environment}-uk-snowfall-artifact-{self.account_number}/athena_query/"
         self.datasets = self.aws_instance.get_workflow_properties('DATASET')
 
 
@@ -77,9 +80,15 @@ class TransformBase:
 
     def process_flow(self):
         "Abstract method which runs each pipeline in order"
-        df = self.get_data()
-        transformed_df = self.transform_data(df)
-        self.save_data(transformed_df)
+        try:
+            df = self.get_data()
+            transformed_df = self.transform_data(df)
+            self.save_data(transformed_df)
+        except Exception as e:
+            for i in self.list_of_files:
+                self.aws_instance.move_s3_object(self.raw_bucket_name, i, f"error/{i}") 
+            self.aws_instance.send_sns_message(e)
+
 
 
     def _initial_message_printed(self):

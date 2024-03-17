@@ -294,3 +294,57 @@ class AwsUtilities:
                     return json_data
             else:
                 raise FileNotFoundError("JSON file not found in the zip archive.")
+    
+
+
+    def create_athena_delta_table(self, database, table_name, s3_path_to_delta, output_location):
+        """
+        Create an Athena external table for Delta data.
+
+        Parameters:
+        - database (str): Name of the database (schema) where the table will be created.
+        - table_name (str): Name of the table to be created.
+        - s3_path_to_delta (str): S3 location where the Delta data is stored.
+        - output_location (str): S3 bucket location where query results will be stored.
+
+        Returns:
+        - str: Query execution ID.
+        """
+        # Determine the full database name
+        databases = {
+            'raw': 'uk_snowfall_raw',
+            'preparation': 'uk_snowfall_preparation',
+            'processed': 'uk_snowfall_processed',
+            'semantic': 'uk_snowfall_semantic'
+        }
+
+        full_database_name = databases.get(database)
+        if full_database_name is None:
+            self.logger.error('No matching database name found')
+            raise Exception('No matching database name found')
+
+        # Initialize Athena client
+        client = boto3.client('athena')
+
+        sql_query = f"""CREATE EXTERNAL TABLE IF NOT EXISTS
+                    {full_database_name}.{table_name}
+                    LOCATION '{s3_path_to_delta}'
+                    TBLPROPERTIES ('table_type' = 'DELTA')
+                    """
+
+        try:
+            # Start query execution
+            response = client.start_query_execution(
+                QueryString=sql_query,
+                ResultConfiguration={
+                    'OutputLocation': output_location
+                }
+            )
+
+            # Extract and return query execution ID
+            query_execution_id = response['QueryExecutionId']
+            return query_execution_id
+        except Exception as e:
+            # Log the error and continue
+            self.logger.info(f"An error occurred while creating Athena Delta table: {str(e)}")
+            return
