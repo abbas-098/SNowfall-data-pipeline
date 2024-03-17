@@ -4,6 +4,7 @@ import json
 import zipfile
 import re
 from awsglue.utils import getResolvedOptions
+from pyspark.sql.utils import AnalysisException
 from snowfall_pipeline.common_utilities.snowfall_logger import SnowfallLogger
 from botocore.exceptions import ClientError
 
@@ -117,34 +118,30 @@ class AwsUtilities:
         return files_list
     
     
-    def check_if_delta_table_exists(self,s3_path):
+    def check_if_delta_table_exists(self, spark, s3_path):
         """
-        Check if a Delta table exists in the specified S3 path.
+        Check if a Delta table exists at the specified S3 path.
 
         Parameters:
-        - s3_path (str): The S3 path to check for Delta table existence.
+        - spark (SparkSession): The SparkSession object.
+        - s3_path (str): The S3 path where the Delta table is located.
 
         Returns:
-        - bool: True if a Delta table exists, False otherwise.
+        - bool: True if the Delta table exists, False otherwise.
         """
-        # Parse bucket name and prefix from the s3 path
-        if s3_path.startswith('s3://'):
-            s3_path = s3_path[5:]
-        bucket_name, prefix = s3_path.split('/', 1)
-
-        # Initialize AWS S3 client
-        s3_client = boto3.client('s3')
-
-        # List objects in the specified S3 path
-        response = s3_client.list_objects_v2(Bucket=bucket_name, Prefix=prefix)
-
-        # Check if any object ends with '_delta_log/'
-        for obj in response.get('Contents', []):
-            if '_delta_log' in obj['Key']:
-                self.logger.info(f"Delta table exists at: {s3_path}")
-                return True
-        self.logger.info(f"Delta table does not exist at: {s3_path}")
-        return False
+        try:
+            # Attempt to load the Delta table
+            spark.read.format("delta").load(s3_path)
+            
+            # Log information if the Delta table exists
+            self.logger.info(f"Delta table exists at: {s3_path}")
+            
+            return True
+        except AnalysisException:
+            # Log information if failed to read the Delta table
+            self.logger.info(f'Failed to read delta table at : {s3_path}')
+            
+            return False
 
 
     def move_s3_object(self, bucket_name, source_object_key, destination_object_key):

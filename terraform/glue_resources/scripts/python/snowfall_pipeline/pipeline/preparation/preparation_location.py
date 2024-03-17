@@ -97,7 +97,7 @@ class PreparationLocation(TransformBase):
         save_output_path = f"s3://{self.preparation_bucket_name}/service_now/location/"
 
         # Check if Delta table needs to be created
-        if not self.aws_instance.check_if_delta_table_exists(save_output_path):
+        if not self.aws_instance.check_if_delta_table_exists(self.spark,save_output_path):
             self.athena_trigger = True
             
         # Determine whether to create or merge to the Delta table
