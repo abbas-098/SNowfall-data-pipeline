@@ -85,9 +85,11 @@ class TransformBase:
             transformed_df = self.transform_data(df)
             self.save_data(transformed_df)
         except Exception as e:
-            for i in self.list_of_files:
-                self.aws_instance.move_s3_object(self.raw_bucket_name, i, f"error/{i}") 
-            self.aws_instance.send_sns_message(e)
+            if 'Preparation' in self.__class__.__name__:
+                for i in self.list_of_files:
+                    self.aws_instance.move_s3_object(self.raw_bucket_name, i, f"error/{i}") 
+            else:
+                self.aws_instance.send_sns_message(e)
 
 
 

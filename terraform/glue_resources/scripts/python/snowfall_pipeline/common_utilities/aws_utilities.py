@@ -139,7 +139,7 @@ class AwsUtilities:
 
         # Check if any object ends with '_delta_log/'
         for obj in response.get('Contents', []):
-            if obj['Key'].endswith('_delta_log/'):
+            if '_delta_log' in obj['Key']:
                 self.logger.info(f"Delta table exists at: {s3_path}")
                 return True
         self.logger.info(f"Delta table does not exist at: {s3_path}")
