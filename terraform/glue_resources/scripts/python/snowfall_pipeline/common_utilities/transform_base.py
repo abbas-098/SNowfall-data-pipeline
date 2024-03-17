@@ -3,8 +3,6 @@ from snowfall_pipeline.common_utilities.aws_utilities import AwsUtilities
 from snowfall_pipeline.common_utilities.decorators import transformation_timer
 
 
-
-
 from pyspark.sql import functions as F
 from pyspark.sql.types import StringType
 
@@ -26,22 +24,38 @@ class TransformBase:
     This class is used as a base for transformations that occur.
 
     Attributes:
-        logger (Logger)                 : The logger for logging information.
-        spark (SparkSession)            : The Spark session.
-        sc (SparkContext)               : The Spark context.
-        glueContext (GlueContext)       : The Glue context.
-        sns_trigger (bool)              : At end of pipeline workflow determine if sns message needs to be sent if any error records detected.
-        aws_instance (class instance)   : Initialise the AwsUtilities class so that the methods are available to use instead of having to import for each class
+        logger (Logger): The logger for logging information.
+        spark (SparkSession): The Spark session.
+        sc (SparkContext): The Spark context.
+        glueContext (GlueContext): The Glue context.
+        aws_instance (class instance): Initialise the AwsUtilities class so that the methods are available to use instead of having to import for each class
+        account_number (str): Account number that we utilize in AWS used to generate the bucket names.
+        environment (str): Environment that we utilize in AWS used to generate the bucket names.
+        full_config (dict): Full configuration read from the script_config file in the common_utilities folders.
+        raw_bucket_name (str): Name of the raw bucket.
+        preparation_bucket_name (str): Name of the preparation bucket.
+        processed_bucket_name (str): Name of the processed bucket.
+        semantic_bucket_name (str): Name of the semantic bucket.
+        datasets (str) : Dataset name pulled from glue workflow propeties
     """
 
     def __init__(self,spark,sc,glueContext):
-
         self.logger = SnowfallLogger.get_logger()
         self.spark = spark
         self.sc = sc
         self.glueContext = glueContext
-        self.sns_trigger = False # TODO Should this be a default False param or not needed at all?
+        self._initial_message_printed()
         self.aws_instance = AwsUtilities()
+        self.sns_trigger = False
+        self.account_number = self.aws_instance.get_glue_env_var('ACCOUNT_NUMBER')
+        self.enviornment = self.aws_instance.get_glue_env_var('ENVIRONMENT')
+        self.full_configs = self.aws_instance.reading_json_from_zip()
+        self.raw_bucket_name = f"eu-central1-{self.enviornment}-uk-snowfall-raw-{self.account_number}"
+        self.preparation_bucket_name = f"eu-central1-{self.enviornment}-uk-snowfall-preparation-{self.account_number}"
+        self.processed_bucket_name = f"eu-central1-{self.enviornment}-uk-snowfall-processed-{self.account_number}"
+        self.semantic_bucket_name = f"eu-central1-{self.enviornment}-uk-snowfall-semantic-{self.account_number}"
+        self.datasets = self.aws_instance.get_workflow_properties('DATASETS')
+
 
 
 
@@ -61,8 +75,18 @@ class TransformBase:
     def pipeline_flow(self):
         "Abstract method which runs each pipeline in order"
         df = self.get_data()
-        tansformed_df = self.transform_data(df)
-        self.save_data(tansformed_df)
+        transformed_df = self.transform_data(df)
+        self.save_data(transformed_df)
+
+
+    def _initial_message_printed(self):
+        """Prints an initial message with hyphens for the pipeline which is running
+        """
+        message = f"Running the {self.__class__.__name__} Pipeline"
+        hyphen_length = 30
+        seperator = '-' * hyphen_length
+        formatted_message = f"{seperator}{message.center(hyphen_length)}{seperator}"
+        self.logger.info(formatted_message)
 
 
     def get_column_count_from_config(self, input_string):

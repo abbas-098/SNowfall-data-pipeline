@@ -51,8 +51,8 @@ class RunManager:
         return ''.join(x.title() for x in components)
 
 def main():
-    group = "processed" #TODO THIS WOULD BE WHERE YOU GET YOUR ENV VARS
-    dataset = "incident_intraday"
+    group = "preparation" #TODO THIS WOULD BE WHERE YOU GET YOUR ENV VARS
+    dataset = "locations"
     sc = SparkContext.getOrCreate()
     
     try:

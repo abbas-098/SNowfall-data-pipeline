@@ -1,0 +1,28 @@
+{
+    "locations": {
+        "transform_json": [
+            "u_franchisee_regional_manager",
+            "u_regional_manager",
+            "u_fanchisee",
+            "u_franchisees_chief_ops_manager",
+            "u_franchisees_ops_manager",
+            "u_director",
+            "u_chief_ops_officer",
+            "u_franchisees_consultant",
+            "u_franchisees_director",
+            "u_ops_manager"
+        ],
+        "process_timestamp": [
+            "sys_updated_on",
+            "sys_created_on"
+        ],
+        "partition_columns": [
+            "sys_created_on_dt"
+        ],
+        "primary_key": [
+            "full_name"
+        ],
+        "location_join_key": "full_name",
+        "appflow_name":"UK-SNowFall-ServiceNow-Location"
+    }
+}

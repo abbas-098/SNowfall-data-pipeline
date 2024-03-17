@@ -1,9 +1,10 @@
 name: Deployment to Production Environment
 
+
 on:
   push:
     branches:
-      - main
+      - abbas
 
 env:
   AWS_REGION: eu-central-1
