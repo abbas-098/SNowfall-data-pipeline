@@ -3,8 +3,6 @@ from snowfall_pipeline.common_utilities.aws_utilities import AwsUtilities
 from snowfall_pipeline.common_utilities.decorators import transformation_timer
 
 
-
-
 from pyspark.sql import functions as F
 from pyspark.sql.types import StringType
 
@@ -26,12 +24,18 @@ class TransformBase:
     This class is used as a base for transformations that occur.
 
     Attributes:
-        logger (Logger)                 : The logger for logging information.
-        spark (SparkSession)            : The Spark session.
-        sc (SparkContext)               : The Spark context.
-        glueContext (GlueContext)       : The Glue context.
-        sns_trigger (bool)              : At end of pipeline workflow determine if sns message needs to be sent if any error records detected.
-        aws_instance (class instance)   : Initialise the AwsUtilities class so that the methods are available to use instead of having to import for each class
+        logger (Logger): The logger for logging information.
+        spark (SparkSession): The Spark session.
+        sc (SparkContext): The Spark context.
+        glueContext (GlueContext): The Glue context.
+        aws_instance (class instance): Initialise the AwsUtilities class so that the methods are available to use instead of having to import for each class
+        account_number (str): Account number that we utilize in AWS used to generate the bucket names.
+        environment (str): Environment that we utilize in AWS used to generate the bucket names.
+        full_config (dict): Full configuration read from the script_config file in the common_utilities folders.
+        raw_bucket_name (str): Name of the raw bucket.
+        preparation_bucket_name (str): Name of the preparation bucket.
+        processed_bucket_name (str): Name of the processed bucket.
+        semantic_bucket_name (str): Name of the semantic bucket.
     """
 
     def __init__(self,spark,sc,glueContext):
@@ -40,8 +44,15 @@ class TransformBase:
         self.spark = spark
         self.sc = sc
         self.glueContext = glueContext
-        self.sns_trigger = False # TODO Should this be a default False param or not needed at all?
         self.aws_instance = AwsUtilities()
+        self.account_number = self.aws_instance.get_glue_env_var('ACCOUNT_NUMBER')
+        self.enviornment = self.aws_instance.get_glue_env_var('ENVIRONMENT')
+        self.full_configs = self.aws_instance.reading_json_from_zip()
+        self.raw_bucket_name = f"eu-central1-{self.enviornment}-uk-snowfall-raw-{self.account_number}"
+        self.preparation_bucket_name = f"eu-central1-{self.enviornment}-uk-snowfall-preparation-{self.account_number}"
+        self.processed_bucket_name = f"eu-central1-{self.enviornment}-uk-snowfall-processed-{self.account_number}"
+        self.semantic_bucket_name = f"eu-central1-{self.enviornment}-uk-snowfall-semantic-{self.account_number}"
+
 
 
 

@@ -1,5 +1,7 @@
 import boto3
 import sys
+import json
+import zipfile
 from awsglue.utils import getResolvedOptions
 from snowfall_pipeline.common_utilities.snowfall_logger import SnowfallLogger
 from botocore.exceptions import ClientError
@@ -233,3 +235,32 @@ class AwsUtilities:
         except Exception as e:
             self.logger.error(f"Error in extract_appflow_records_processed: {e}")
             return None
+
+    def reading_json_from_zip(self):
+        """
+        Read JSON data from the zip file which is uploaded to glue.
+
+        Returns:
+            dict: JSON data read from the file.
+        
+        Raises:
+            FileNotFoundError: If the specified JSON file is not found in the zip archive.
+            json.JSONDecodeError: If the JSON data cannot be decoded.
+        """
+        # Path to your zip file
+        zip_file_path = "snowfall_pipeline.zip"
+
+        # Name of the JSON file inside the zip archive
+        json_file_name = "snowfall_pipeline/common_utilities/script_config.json"
+
+        # Open the zip file
+        with zipfile.ZipFile(zip_file_path, 'r') as zip_file:
+            # Check if the JSON file exists in the zip archive
+            if json_file_name in zip_file.namelist():
+                # Read the JSON file directly from the zip archive
+                with zip_file.open(json_file_name) as json_file:
+                    # Load JSON data
+                    json_data = json.load(json_file)
+                    return json_data
+            else:
+                raise FileNotFoundError("JSON file not found in the zip archive.")
