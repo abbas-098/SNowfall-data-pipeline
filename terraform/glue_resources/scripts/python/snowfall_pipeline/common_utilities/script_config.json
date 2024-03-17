@@ -24,6 +24,9 @@
         ],
         "joining_key": [
             "full_name"
+        ],
+        "appflow_name": [
+            "UK-SNowFall-ServiceNow-Location"
         ]
     }
 }

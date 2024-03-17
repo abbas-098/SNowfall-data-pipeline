@@ -2,6 +2,10 @@ from snowfall_pipeline.common_utilities.transform_base import TransformBase
 
 
 class PreparationLocations(TransformBase):
+    def __init__(self, spark, sc, glueContext):
+        super().__init__(spark, sc, glueContext)
+        self.pipeline_config = self.full_configs[self.datasets]
+
 
 
     def get_data(self):
