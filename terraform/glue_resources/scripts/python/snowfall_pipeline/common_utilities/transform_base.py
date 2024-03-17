@@ -46,6 +46,7 @@ class TransformBase:
         self.glueContext = glueContext
         self._initial_message_printed()
         self.aws_instance = AwsUtilities()
+        self.sns_trigger = False
         self.account_number = self.aws_instance.get_glue_env_var('ACCOUNT_NUMBER')
         self.enviornment = self.aws_instance.get_glue_env_var('ENVIRONMENT')
         self.full_configs = self.aws_instance.reading_json_from_zip()
@@ -74,8 +75,8 @@ class TransformBase:
     def pipeline_flow(self):
         "Abstract method which runs each pipeline in order"
         df = self.get_data()
-        tansformed_df = self.transform_data(df)
-        self.save_data(tansformed_df)
+        transformed_df = self.transform_data(df)
+        self.save_data(transformed_df)
 
 
     def _initial_message_printed(self):

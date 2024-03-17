@@ -22,11 +22,7 @@
         "primary_key": [
             "full_name"
         ],
-        "joining_key": [
-            "full_name"
-        ],
-        "appflow_name": [
-            "UK-SNowFall-ServiceNow-Location"
-        ]
+        "location_join_key": "full_name",
+        "appflow_name":"UK-SNowFall-ServiceNow-Location"
     }
 }
