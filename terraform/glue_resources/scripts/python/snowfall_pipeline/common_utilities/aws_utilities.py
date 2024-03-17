@@ -2,6 +2,7 @@ import boto3
 import sys
 import json
 import zipfile
+import re
 from awsglue.utils import getResolvedOptions
 from snowfall_pipeline.common_utilities.snowfall_logger import SnowfallLogger
 from botocore.exceptions import ClientError
@@ -310,6 +311,16 @@ class AwsUtilities:
         Returns:
         - str: Query execution ID.
         """
+        # Initialize S3 client
+        s3_client = boto3.client('s3')
+
+        # Delete objects matching the pattern _delta_log_$folder$ which is created sometimes which will cause error
+        paginator = s3_client.get_paginator('list_objects_v2')
+        for page in paginator.paginate(Bucket=s3_path_to_delta.split('/')[2], Prefix=s3_path_to_delta.split('/')[3]):
+            for obj in page.get('Contents', []):
+                if re.match(r'.*/_delta_log_\$folder\$$', obj['Key']):
+                    s3_client.delete_object(Bucket=s3_path_to_delta.split('/')[2], Key=obj['Key'])
+
         # Determine the full database name
         databases = {
             'raw': 'uk_snowfall_raw',
