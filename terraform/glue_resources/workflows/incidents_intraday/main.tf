@@ -5,7 +5,8 @@ resource "aws_glue_workflow" "incidents_intraday" {
   max_concurrent_runs = 1
   default_run_properties = {
 
-    "DATASET_NAME"                = "incidents"
+    "DATASET"                = "incidents"
+    "GROUP"                  = "preparation"
   }
 }
 
