@@ -8,8 +8,9 @@ class PreparationLocation(TransformBase):
         super().__init__(spark, sc, glueContext)
         self.spark.conf.set("spark.sql.shuffle.partitions", "5") 
         self.pipeline_config = self.full_configs[self.datasets]
+        # when showing test change to 75
         self.dq_rule = """Rules = [
-        ColumnCount = 75,
+        ColumnCount = 76,
         RowCount > 0,
         IsComplete "sys_created_on"]"""
         self.file_path = "service_now/location"
