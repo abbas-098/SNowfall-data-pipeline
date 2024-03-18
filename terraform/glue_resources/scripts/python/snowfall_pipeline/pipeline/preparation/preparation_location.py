@@ -14,7 +14,7 @@ class PreparationLocation(TransformBase):
         ColumnCount = 75,
         RowCount > 0,
         IsComplete "sys_created_on",
-        CustomSql "select length(trim(full_name)) from dyf > 1 "
+        CustomSql "select count(*) from dyf" between 10 and 20"
         ]"""
         self.file_path = "service_now/location"
         self.list_of_files = self.aws_instance.get_files_in_s3_path(f"{self.raw_bucket_name}/{self.file_path}/")
