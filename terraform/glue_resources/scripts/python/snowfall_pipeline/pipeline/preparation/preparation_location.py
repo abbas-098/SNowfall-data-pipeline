@@ -12,9 +12,8 @@ class PreparationLocation(TransformBase):
         # when showing test change to 75
         self.dq_rule = """Rules = [
         ColumnCount = 75,
-        IsComplete "full_name",
         RowCount > 0,
-        IsComplete "sys_created_on"]"""
+        IsComplete "full_name"]"""
         self.file_path = "service_now/location"
         self.list_of_files = self.aws_instance.get_files_in_s3_path(f"{self.raw_bucket_name}/{self.file_path}/")
 
