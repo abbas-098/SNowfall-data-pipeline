@@ -4,6 +4,7 @@ from delta.tables import *
 
 
 class PreparationLocation(TransformBase):
+
     def __init__(self, spark, sc, glueContext):
         super().__init__(spark, sc, glueContext)
         self.spark.conf.set("spark.sql.shuffle.partitions", "5") 
@@ -95,7 +96,7 @@ class PreparationLocation(TransformBase):
 
         """
         # Define the S3 save path
-        save_output_path = f"s3://{self.preparation_bucket_name}/service_now/location/"
+        save_output_path = f"s3://{self.preparation_bucket_name}/{self.file_path}/"
 
         # Check if Delta table needs to be created
         if not self.aws_instance.check_if_delta_table_exists(self.spark,save_output_path):
