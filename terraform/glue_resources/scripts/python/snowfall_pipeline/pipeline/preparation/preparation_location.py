@@ -9,7 +9,7 @@ class PreparationLocation(TransformBase):
         self.spark.conf.set("spark.sql.shuffle.partitions", "5") 
         self.pipeline_config = self.full_configs[self.datasets]
         self.dq_rule = """Rules = [
-        ColumnCount = 75,
+        ColumnCount = 76,
         RowCount > 0,
         IsComplete "sys_created_on"]"""
         self.file_path = "service_now/location"
@@ -70,14 +70,13 @@ class PreparationLocation(TransformBase):
         # Step 1: Remove duplicate records
         self.logger.info('Removing duplicate records')
         df = df.dropDuplicates()
-        df = self.transform_struct_to_string(df)
         self.logger.info(f'Number of records in dataframe after dropping duplicates: {df.count()}')
 
         # Step 2: Data quality check
         df = self.data_quality_check(df, self.dq_rule, self.raw_bucket_name, self.file_path, 'json')
 
         # Step 3: Convert all structs to strings
-        
+        df = self.transform_struct_to_string(df)
 
         # Step 4: Add CDC columns
         df = self.adding_cdc_columns(df)
