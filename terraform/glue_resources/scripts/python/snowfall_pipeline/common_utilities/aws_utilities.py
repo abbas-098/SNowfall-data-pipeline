@@ -345,7 +345,7 @@ class AwsUtilities:
             response = client.start_query_execution(
                 QueryString=sql_query,
                 ResultConfiguration={
-                    'OutputLocation': output_location
+                    'OutputLocation': f"s3://{output_location}"
                 }
             )
 
