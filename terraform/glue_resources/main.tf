@@ -96,7 +96,7 @@ module "incident_intraday_module" {
 
 }
 
-############ Glue Data Catalog #########
+############ Glue Data Catalog Databases #########
 resource "aws_glue_catalog_database" "preparation_database" {
   name = "uk_snowfall_preparation"
   description = "Datasets that have been cleansed and validated and remain at the same level they were initally sourced"

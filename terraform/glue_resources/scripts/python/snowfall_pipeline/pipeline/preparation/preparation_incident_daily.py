@@ -2,19 +2,21 @@ from snowfall_pipeline.common_utilities.transform_base import TransformBase
 from snowfall_pipeline.common_utilities.decorators import transformation_timer
 from delta.tables import *
 
+# dataset incident_daily
 
-class PreparationLocation(TransformBase):
+class PreparationIncidentDaily(TransformBase):
 
     def __init__(self, spark, sc, glueContext):
         super().__init__(spark, sc, glueContext)
         self.spark.conf.set("spark.sql.shuffle.partitions", "5") 
-        self.pipeline_config = self.full_configs[self.datasets]
+        self.pipeline_config = self.full_configs['incidents'] # have to hard code incidents here since have daily and intra
         self.dq_rule = """Rules = [
-        ColumnCount = 76,
+        ColumnCount = 176,
         RowCount > 0,
+        IsComplete "number",
         IsComplete "sys_created_on"
         ]"""
-        self.file_path = "service_now/location"
+        self.file_path = "service_now/incident/daily"
         self.list_of_files = self.aws_instance.get_files_in_s3_path(f"{self.raw_bucket_name}/{self.file_path}/")
 
 
@@ -39,7 +41,7 @@ class PreparationLocation(TransformBase):
             raise Exception(message)
         
         # Extract the number of records processed from AppFlow
-        appflow_row_number = self.aws_instance.extract_appflow_records_processed(self.list_of_files, self.pipeline_config['appflow_name'])
+        appflow_row_number = self.aws_instance.extract_appflow_records_processed(self.list_of_files, self.pipeline_config['appflow_name_daily'])
         
         # Log the number of records in the DataFrame
         self.logger.info(f'Number of records in dataframe: {source_df.count()}')
@@ -59,7 +61,8 @@ class PreparationLocation(TransformBase):
         1. Remove duplicate records.
         2. Convert all structs to strings.
         3. Perform data quality check.
-        4. Add CDC columns.
+        4. Mask PII Data
+        5. Add CDC columns.
 
         Parameters:
         - df: Input DataFrame.
@@ -74,14 +77,16 @@ class PreparationLocation(TransformBase):
         df = df.dropDuplicates()
         self.logger.info(f'Number of records in dataframe after dropping duplicates: {df.count()}')
 
-
         # Step 2: Convert all structs to strings
         df = self.transform_struct_to_string(df)
 
         # Step 3: Data quality check
         df = self.data_quality_check(df, self.dq_rule,self.pipeline_config.get('primary_key'), self.raw_bucket_name, self.file_path, 'json')
 
-        # Step 4: Add CDC columns
+        # Step 4: Mask PII Information
+        df = self.redact_pii_columns(df,self.pipeline_config.get('redact_pii_columns'))
+
+        # Step 5: Add CDC columns
         df = self.adding_cdc_columns(df)
 
         return df
@@ -109,7 +114,7 @@ class PreparationLocation(TransformBase):
             df.write.format("delta").mode("overwrite").save(save_output_path)
 
             # Execute Athena query to create the table
-            self.aws_instance.create_athena_delta_table('preparation', 'service_now_location', save_output_path, self.athena_output_path)
+            self.aws_instance.create_athena_delta_table('preparation', 'service_now_incident_daily', save_output_path, self.athena_output_path)
             
         else:
 
@@ -118,8 +123,9 @@ class PreparationLocation(TransformBase):
             sql_query = f"""
             MERGE INTO delta.`{save_output_path}` AS target
             USING temp_view AS source
-            ON target.full_name = source.full_name
+            ON target.number = source.number
             AND target.sys_created_on = source.sys_created_on
+            AND target.state = source.state
             WHEN MATCHED THEN
             UPDATE SET *
             WHEN NOT MATCHED THEN
