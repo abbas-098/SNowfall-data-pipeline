@@ -10,7 +10,7 @@ class PreparationLocation(TransformBase):
         self.spark.conf.set("spark.sql.shuffle.partitions", "5") 
         self.pipeline_config = self.full_configs[self.datasets]
         self.dq_rule = """Rules = [
-        ColumnCount = 76,
+        ColumnCount = 75,
         RowCount > 0,
         IsComplete "sys_created_on"
         ]"""
