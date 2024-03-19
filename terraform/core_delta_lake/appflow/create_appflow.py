@@ -2,7 +2,6 @@ import boto3
 from botocore.exceptions import ClientError
 import json
 import os
-import logging
 
 
 client = boto3.client('appflow', region_name='eu-central-1')

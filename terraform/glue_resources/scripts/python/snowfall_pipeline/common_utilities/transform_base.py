@@ -59,7 +59,7 @@ class TransformBase:
         self.preparation_bucket_name = f"eu-central1-{self.environment}-uk-snowfall-preparation-{self.account_number}"
         self.processed_bucket_name = f"eu-central1-{self.environment}-uk-snowfall-processed-{self.account_number}"
         self.semantic_bucket_name = f"eu-central1-{self.environment}-uk-snowfall-semantic-{self.account_number}"
-        self.athena_output_path = f"eu-central1-{self.environment}-uk-snowfall-artifact-{self.account_number}/athena_query/"
+        self.athena_output_path = f"eu-central1-{self.environment}-uk-snowfall-athena-{self.account_number}/"
         self.datasets = self.aws_instance.get_workflow_properties('DATASET')
 
 

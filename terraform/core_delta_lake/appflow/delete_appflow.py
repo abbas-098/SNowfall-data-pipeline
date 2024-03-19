@@ -1,7 +1,7 @@
 import boto3
 import json
 import os
-import logging
+
 
 
 client = boto3.client('appflow', region_name='eu-central-1')
