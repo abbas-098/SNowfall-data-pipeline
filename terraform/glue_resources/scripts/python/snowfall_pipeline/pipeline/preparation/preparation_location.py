@@ -9,12 +9,10 @@ class PreparationLocation(TransformBase):
         super().__init__(spark, sc, glueContext)
         self.spark.conf.set("spark.sql.shuffle.partitions", "5") 
         self.pipeline_config = self.full_configs[self.datasets]
-        # when showing test change to 75
         self.dq_rule = """Rules = [
-        ColumnCount = 75,
+        ColumnCount = 76,
         RowCount > 0,
-        IsComplete "sys_created_on",
-        CustomSql "select count(*) from dyf" between 10 and 20"
+        IsComplete "sys_created_on"
         ]"""
         self.file_path = "service_now/location"
         self.list_of_files = self.aws_instance.get_files_in_s3_path(f"{self.raw_bucket_name}/{self.file_path}/")
@@ -77,7 +75,7 @@ class PreparationLocation(TransformBase):
         self.logger.info(f'Number of records in dataframe after dropping duplicates: {df.count()}')
 
         # Step 2: Data quality check
-        df = self.data_quality_check(df, self.dq_rule, self.raw_bucket_name, self.file_path, 'json')
+        df = self.data_quality_check(df, self.dq_rule,'full_name', self.raw_bucket_name, self.file_path, 'json')
 
         # Step 3: Convert all structs to strings
         df = self.transform_struct_to_string(df)
@@ -121,7 +119,6 @@ class PreparationLocation(TransformBase):
             USING temp_view AS source
             ON target.full_name = source.full_name
             AND target.sys_created_on = source.sys_created_on
-            AND target.sys_id = source.sys_id
             WHEN MATCHED THEN
             UPDATE SET *
             WHEN NOT MATCHED THEN
@@ -134,6 +131,11 @@ class PreparationLocation(TransformBase):
         # Move files to the Archive folder
         for file_name in self.list_of_files:
             self.aws_instance.move_s3_object(self.raw_bucket_name, file_name, f"archive/{file_name}")
+        
+        # If error detected from DQ failing then will raise
+        if self.sns_trigger:
+            message = "Records in the error folder that have failed DQ rules"
+            self.aws_instance.send_sns_message(message)
         
         self.logger.info(f'Finished running the {self.__class__.__name__} pipeline!')
 

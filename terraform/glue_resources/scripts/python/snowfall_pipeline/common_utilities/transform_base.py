@@ -128,75 +128,86 @@ class TransformBase:
 
 
     @transformation_timer
-    def data_quality_check(self, df, dq_rules,bucket_name,s3_path_prefix,output_file_type):
-         """Perform data quality checks on the DataFrame and returns the passed rows.
+    def data_quality_check(self, df, dq_rules, pk, bucket_name, s3_path_prefix, output_file_type):
 
-         Args:
-             df (DataFrame): The input DataFrame to perform data quality checks on.
-             dq_rules (string): The string from config files regarding the dq rules
+        """Perform data quality checks on the DataFrame and return the passed rows.
 
-         Returns:
-             DataFrame: The DataFrame containing rows that passed the data quality checks. 
-             ( Note that 4 extra columns are added due to this data quality check )
+        Args:
+            df (DataFrame): The input DataFrame to perform data quality checks on.
+            dq_rules (string): The string from config files regarding the dq rules.
+            pk (string): The name of the primary key column that you want to check for non null
+            bucket_name (string): The name of the S3 bucket.
+            s3_path_prefix (string): The prefix of the S3 path.
+            output_file_type (string): The type of output file.
 
-         Raises:
-             Exception: If there are issues with data quality checks or loading the source data.
-         """
+        Returns:
+            DataFrame: The DataFrame containing rows that passed the data quality checks.
+            (Note that 4 extra columns are added due to this data quality check)
 
-         self.logger.info('Running the data quality check ......')
-         self.logger.info(f'Rules to be applied on the data: {dq_rules}')
+        Raises:
+            Exception: If there are issues with data quality checks or loading the source data.
+        """
+        self.logger.info('Running the data quality check ......')
+        self.logger.info(f'Rules to be applied on the data: {dq_rules}')
 
-         column_count_expected = self.get_column_count_from_config(dq_rules)
+        column_count_expected = self.get_column_count_from_config(dq_rules)
 
-         dyf = DynamicFrame.fromDF(df,self.glueContext, "dyf")
+        dyf = DynamicFrame.fromDF(df,self.glueContext, "dyf")
 
-         EvaluateDataQuality_ruleset = f"""{dq_rules}"""
+        EvaluateDataQuality_ruleset = f"""{dq_rules}"""
 
-         EvaluateDataQualityMultiframe = EvaluateDataQuality().process_rows(
-             frame=dyf,
-             ruleset=EvaluateDataQuality_ruleset,
-             publishing_options={
-                 "dataQualityEvaluationContext": "EvaluateDataQualityMultiframe",
-                 "enableDataQualityCloudWatchMetrics": False,
-                 "enableDataQualityResultsPublishing": True,
-             },
-             additional_options={"performanceTuning.caching": "CACHE_NOTHING"},
-         )
+        EvaluateDataQualityMultiframe = EvaluateDataQuality().process_rows(
+            frame=dyf,
+            ruleset=EvaluateDataQuality_ruleset,
+            publishing_options={
+                "dataQualityEvaluationContext": "EvaluateDataQualityMultiframe",
+                "enableDataQualityCloudWatchMetrics": False,
+                "enableDataQualityResultsPublishing": True,
+            },
+            additional_options={"performanceTuning.caching": "CACHE_NOTHING"},
+        )
 
-         rowLevelOutcomes = SelectFromCollection.apply(
-             dfc=EvaluateDataQualityMultiframe,
-             key="rowLevelOutcomes",
-             transformation_ctx="rowLevelOutcomes",
-         )
+        rowLevelOutcomes = SelectFromCollection.apply(
+            dfc=EvaluateDataQualityMultiframe,
+            key="rowLevelOutcomes",
+            transformation_ctx="rowLevelOutcomes",
+        )
 
-         rowLevelOutcomes_df = rowLevelOutcomes.toDF()
+        rowLevelOutcomes_df = rowLevelOutcomes.toDF()
 
-         column_count = len(rowLevelOutcomes_df.columns)
+        column_count = len(rowLevelOutcomes_df.columns)
 
-         rowLevelOutcomes_df = rowLevelOutcomes_df.withColumn(
-             "DataQualityEvaluationResult",
-             F.expr(f"""CASE WHEN DataQualityEvaluationResult = 'Passed' AND {column_count} = {column_count_expected} THEN DataQualityEvaluationResult ELSE 'Failed' END""")
-         )
+        rowLevelOutcomes_df = rowLevelOutcomes_df.withColumn(
+            "DataQualityEvaluationResult",
+            F.expr(f"""
+                CASE
+                    WHEN DataQualityEvaluationResult = 'Passed' AND 
+                         {column_count} = {column_count_expected} AND 
+                         LENGTH(TRIM({pk})) > 1 THEN 'Passed'
+                    ELSE 'Failed'
+                END
+            """)
+        )
 
-         df_passed = rowLevelOutcomes_df.filter(rowLevelOutcomes_df.DataQualityEvaluationResult == "Passed")
-         df_failed = rowLevelOutcomes_df.filter(rowLevelOutcomes_df.DataQualityEvaluationResult == "Failed")
+        df_passed = rowLevelOutcomes_df.filter(rowLevelOutcomes_df.DataQualityEvaluationResult == "Passed")
+        df_failed = rowLevelOutcomes_df.filter(rowLevelOutcomes_df.DataQualityEvaluationResult == "Failed")
 
-         self.logger.info(f"Counts of Rows Passed: {df_passed.count()}")
-         self.logger.info(f"Counts of Rows Failed: {df_failed.count()}")
+        self.logger.info(f"Counts of Rows Passed: {df_passed.count()}")
+        self.logger.info(f"Counts of Rows Failed: {df_failed.count()}")
 
-         if df_passed.isEmpty():
-             if df_failed.isEmpty():
-                 raise Exception("Issue loading source data in raw bucket")
-             else:
-                 raise Exception("Data Quality for the whole dataset has failed.")
+        if df_passed.isEmpty():
+            if df_failed.isEmpty():
+                raise Exception("Issue loading source data in raw bucket")
+            else:
+                raise Exception("Data Quality for the whole dataset has failed.")
 
-         if not df_failed.isEmpty():
-             self.error_handling_after_dq(df_failed,bucket_name,s3_path_prefix,output_file_type)
+        if not df_failed.isEmpty():
+            self.error_handling_after_dq(df_failed,bucket_name,s3_path_prefix,output_file_type)
 
-         return df_passed
+        return df_passed
         
 
-    def error_handling_after_dq(self,df,bucket_name,s3_path_prefix,output_file_type):
+    def error_handling_after_dq(self, df, bucket_name, s3_path_prefix, output_file_type):
         """
         Handles the records that have failed the data quality check. It exports the files
         to a specific S3 file path and changes the sns_trigger boolean to True so 
@@ -208,7 +219,7 @@ class TransformBase:
             df (DataFrame): The DataFrame containing the records.
             bucket_name (str): The name of the S3 bucket.
             s3_path_prefix (str): The prefix of the S3 file path.
-            output_file_type (str): The type of the output file as it can be json or csv.
+            output_file_type (str): The type of the output file. It can be 'json' or 'csv'.
 
         Raises:
             Exception: An error occurred during the process.
