@@ -2,6 +2,7 @@ from snowfall_pipeline.common_utilities.transform_base import TransformBase
 from snowfall_pipeline.common_utilities.decorators import transformation_timer
 from delta.tables import *
 
+
 # dataset incident_daily
 
 class PreparationIncidentDaily(TransformBase):
