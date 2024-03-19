@@ -221,4 +221,22 @@ resource "aws_s3_bucket_versioning" "semantic_verisoning" {
   }
 }
 
- 
+###### Creation of Athena Bucket ##############
+resource "aws_s3_bucket" "athena_bucket" {
+  bucket = "eu-central1-${var.environment}-uk-snowfall-athena-${var.account_number}"
+  tags   = var.resource_tags
+}
+
+resource "aws_s3_bucket_lifecycle_configuration" "athena_lifecycle" {
+  bucket = aws_s3_bucket.athena_bucket.id
+
+  rule {
+    id     = "Delete After 30 Days"
+    status = "Enabled"
+
+    expiration {
+      days = 30
+    }
+  }
+}
+
