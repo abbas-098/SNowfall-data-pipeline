@@ -117,7 +117,9 @@ class PreparationIncidentDaily(TransformBase):
         if self.athena_trigger:
 
             # Create the Delta table
-            df.write.format("delta").mode("overwrite").save(save_output_path).partitionBy('year_partition','month_partition','day_partition')
+            df.write.format("delta").mode("overwrite") \
+            .partitionBy('year_partition','month_partition','day_partition') \
+            .save(save_output_path)
 
             # Execute Athena query to create the table
             self.aws_instance.create_athena_delta_table('preparation', 'service_now_incident_daily', save_output_path, self.athena_output_path)

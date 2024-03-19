@@ -365,7 +365,7 @@ class TransformBase:
         df = df.withColumn("cdc_glue_workflow_id", F.lit(self.aws_instance.get_glue_env_var('WORKFLOW_RUN_ID')))
 
         # Add unique GUID column
-        df = df.withColumn("unique_guid", F.udf(self.generate_random_filename)())
+        df = df.withColumn("unique_guid", F.monotonically_increasing_id().cast("string"))
 
         return df
 
