@@ -64,6 +64,7 @@ class PreparationIncidentDaily(TransformBase):
         3. Perform data quality check.
         4. Mask PII Data
         5. Add CDC columns.
+        6. Add Partition Columns
 
         Parameters:
         - df: Input DataFrame.
@@ -90,6 +91,9 @@ class PreparationIncidentDaily(TransformBase):
         # Step 5: Add CDC columns
         df = self.adding_cdc_columns(df)
 
+        # Step 6: Adding Partiton Columns
+        df = self.create_partition_date_columns(df,'sys_created_on')
+
         return df
 
 
@@ -111,8 +115,9 @@ class PreparationIncidentDaily(TransformBase):
             
         # Determine whether to create or merge to the Delta table
         if self.athena_trigger:
+
             # Create the Delta table
-            df.write.format("delta").mode("overwrite").save(save_output_path)
+            df.write.format("delta").mode("overwrite").save(save_output_path).partitionBy('year_partition','month_partition','day_partition')
 
             # Execute Athena query to create the table
             self.aws_instance.create_athena_delta_table('preparation', 'service_now_incident_daily', save_output_path, self.athena_output_path)
@@ -127,6 +132,9 @@ class PreparationIncidentDaily(TransformBase):
             ON target.number = source.number
             AND target.sys_created_on = source.sys_created_on
             AND target.state = source.state
+            AND target.year_partition = source.year_partition
+            AND target.month_partition = source.month_partition
+            AND target.day_partition = source.day_partition
             WHEN MATCHED THEN
             UPDATE SET *
             WHEN NOT MATCHED THEN

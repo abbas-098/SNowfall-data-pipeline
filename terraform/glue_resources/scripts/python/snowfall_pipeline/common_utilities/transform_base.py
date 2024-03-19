@@ -342,13 +342,14 @@ class TransformBase:
         return df
 
     @transformation_timer
-    def adding_cdc_columns(self,df):
+    def adding_cdc_columns(self, df):
         """
         Add change data capture (CDC) columns to the DataFrame.
 
-        This function adds two columns to the DataFrame:
+        This function adds three columns to the DataFrame:
         - 'cdc_timestamp': Current timestamp indicating the time of data capture.
         - 'cdc_glue_workflow_id': Glue workflow ID retrieved from AWS environment variables.
+        - 'unique_guid': Unique GUID generated for each row.
 
         Parameters:
         - df (DataFrame): Input DataFrame.
@@ -358,10 +359,37 @@ class TransformBase:
         """
 
         # Add current timestamp column
-        df = df.withColumn("cdc_timestamp",F.date_format(F.current_timestamp(), "yyyy-MM-dd HH:mm:ss"))
+        df = df.withColumn("cdc_timestamp", F.date_format(F.current_timestamp(), "yyyy-MM-dd HH:mm:ss"))
 
         # Add glue workflow ID
-        df = df.withColumn("cdc_glue_workflow_id",F.lit(self.aws_instance.get_glue_env_var('WORKFLOW_RUN_ID')))
+        df = df.withColumn("cdc_glue_workflow_id", F.lit(self.aws_instance.get_glue_env_var('WORKFLOW_RUN_ID')))
+
+        # Add unique GUID column
+        df = df.withColumn("unique_guid", F.udf(self.generate_random_filename)())
 
         return df
 
+    def create_partition_date_columns(self,df, timestamp_column):
+        """
+        Extracts day, month, and year from a timestamp column and adds them as partition columns with string type.
+
+        Args:
+            df (DataFrame): Input PySpark DataFrame.
+            timestamp_column (str): Name of the timestamp column containing dates in the format dd-mm-yyyy HH:mm:ss.
+
+        Returns:
+            DataFrame: PySpark DataFrame with day, month, and year extracted as partition columns.
+
+        """
+        # Split the timestamp into date and time components
+        df = df.withColumn("date_components", F.split(F.col(timestamp_column), " "))
+        
+        # Split the date component into day, month, and year
+        df = df.withColumn("day_partition", F.split(df.date_components[0], "-")[0].cast("string"))
+        df = df.withColumn("month_partition", F.split(df.date_components[0], "-")[1].cast("string"))
+        df = df.withColumn("year_partition", F.split(df.date_components[0], "-")[2].cast("string"))
+        
+        # Drop the intermediate column
+        df = df.drop("date_components")
+        
+        return df

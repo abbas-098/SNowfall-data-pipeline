@@ -159,13 +159,6 @@ resource "aws_s3_object" "temporary_folder" {
   source = "/dev/null" 
 }
 
-resource "aws_s3_object" "athena_folder" {
-  bucket = aws_s3_bucket.artifact_bucket.id
-  key    = "athena_query/" 
-  source = "/dev/null" 
-}
-
-
 #####################################################################################
 
 # ####### Creation of Processed Bucket ################
