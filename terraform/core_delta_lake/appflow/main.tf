@@ -10,7 +10,6 @@ resource "null_resource" "create_appflow" {
     }
 }
 
-
 resource "null_resource" "delete_appflow" {
     count = 1
     provisioner "local-exec" {
