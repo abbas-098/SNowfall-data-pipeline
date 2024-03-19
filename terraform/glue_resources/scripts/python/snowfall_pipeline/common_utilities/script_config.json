@@ -96,5 +96,12 @@
         "appflow_name_daily":"UK-SNowFall-ServiceNow-Incident-Daily",
         "appflow_name_intraday":"UK-SNowFall-ServiceNow-Incident-Intraday"
 
+    },
+    "location_hierarchy":{
+        "primary_key":"STORE_NUMBER",
+        "redact_pii_columns":[
+            "OO_EMAIL",
+            "FS_EMAIL"
+        ]
     }
 }
