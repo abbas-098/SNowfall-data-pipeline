@@ -218,6 +218,7 @@ resource "aws_s3_bucket_versioning" "semantic_verisoning" {
 resource "aws_s3_bucket" "athena_bucket" {
   bucket = "eu-central1-${var.environment}-uk-snowfall-athena-${var.account_number}"
   tags   = var.resource_tags
+  force_destroy = true
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "athena_lifecycle" {
