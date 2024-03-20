@@ -4,14 +4,14 @@ name: Deployment to Production Environment
 on:
   push:
     branches:
-      - abbas
+      - main
 
 env:
   AWS_REGION: eu-central-1
   ENVIRONMENT: production
   AWS_ROLE_TO_ASSUME: arn:aws:iam::646303040748:role/UK-MKT-SNowfall-Prod-Deploy-Service-Role
   STATE_BUCKET: dev-abbas-testing
-  VAR_FILE: abbas.tfvars
+  VAR_FILE: ../abbas.tfvars
 
 jobs:
   terraform:
