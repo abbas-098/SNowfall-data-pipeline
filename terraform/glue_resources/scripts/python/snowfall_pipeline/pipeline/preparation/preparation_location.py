@@ -1,5 +1,4 @@
 from snowfall_pipeline.common_utilities.transform_base import TransformBase
-from snowfall_pipeline.common_utilities.decorators import transformation_timer
 from snowfall_pipeline.common_utilities.data_quality_rules import dq_rules
 from delta.tables import DeltaTable
 
