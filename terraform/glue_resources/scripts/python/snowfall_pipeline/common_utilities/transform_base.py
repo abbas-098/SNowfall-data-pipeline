@@ -5,6 +5,7 @@ from snowfall_pipeline.common_utilities.decorators import transformation_timer
 
 from pyspark.sql import functions as F
 from pyspark.sql.types import StringType, StructType
+from delta.tables import *
 
 
 from awsglue.dynamicframe import DynamicFrame
@@ -61,7 +62,6 @@ class TransformBase:
         self.semantic_bucket_name = f"eu-central1-{self.environment}-uk-snowfall-semantic-{self.account_number}"
         self.athena_output_path = f"eu-central1-{self.environment}-uk-snowfall-athena-{self.account_number}/"
         self.datasets = self.aws_instance.get_workflow_properties('DATASET')
-
 
 
 
@@ -308,8 +308,6 @@ class TransformBase:
 
         return df
         
-
-
     def dropping_dq_columns(self, df):
 
         """Drop Data Quality related columns from the input DataFrame.
@@ -393,3 +391,96 @@ class TransformBase:
         df = df.drop("date_components")
         
         return df
+
+    def read_data_from_s3(self,bucket_name,file_path, file_format='json',appflow_config = None):
+        """
+        Read data from S3 based on the specified file format.
+
+        Parameters:
+            bucket_name (str): The name of the S3 bucket.
+            file_path (str): The path to the file in the S3 bucket.
+            file_format (str, optional): The format of the file to read. Supported formats: 'json', 'csv'. Defaults to 'json'.
+            appflow_config (str, optional): If there is an appflow config, it is passed in to get rows extracted. Defaults to None.
+
+        Returns:
+            DataFrame: The DataFrame containing the read data.
+        """
+        # Log the file path from where data is being read
+        self.logger.info(f'Reading data in the file path: s3://{bucket_name}/{file_path}/')
+
+        # Read data from the specified S3 file path
+        if len(self.list_of_files) > 0:
+            if file_format == 'json':
+                source_df = self.spark.read.json(f"s3://{bucket_name}/{file_path}/")
+            elif file_format == 'csv':
+                source_df = self.spark.read.csv(f"s3://{bucket_name}/{file_path}/", header=True)
+            else:
+                raise ValueError("Unsupported file format. Supported formats: 'json', 'csv'")
+        else:
+            message = f"The file path: s3://{bucket_name}/{file_path}/ is empty."
+            raise FileNotFoundError(message)
+
+        # Extract the number of records processed from AppFlow
+        appflow_row_number = self.aws_instance.extract_appflow_records_processed(self.list_of_files, appflow_config)
+
+        # Log the number of records in the DataFrame
+        self.logger.info(f'Number of records in dataframe: {source_df.count()}')
+
+        # Log the number of records processed from AppFlow if available
+        if appflow_row_number is not None:
+            self.logger.info(f'Number of records processed from appflow: {appflow_row_number}')
+
+        return source_df
+    
+
+    @transformation_timer
+    def dropping_duplicates(self, df):
+        """
+        Remove duplicate records from the DataFrame.
+
+        Parameters:
+            df (DataFrame): The DataFrame to remove duplicates from.
+
+        Returns:
+            DataFrame: The DataFrame with duplicates removed.
+        """
+        self.logger.info('Removing duplicate records')
+        initial_count = df.count()
+        df = df.dropDuplicates()
+        new_count = df.count()
+        self.logger.info(f"{initial_count - new_count} duplicate records have been removed")
+        return df
+
+
+    @transformation_timer
+    def merge_to_delta_table(self, df, save_output_path, matching_columns):
+        """
+        Merge data from DataFrame to the Delta table using specified column matching criteria.
+
+        Parameters:
+            df (DataFrame): The DataFrame to be merged.
+            save_output_path (str): The path to the Delta table to merge into.
+            matching_columns (list): A list of column names for matching records.
+        """
+        # Create or replace temporary view for DataFrame
+        df.createOrReplaceTempView("temp_view")
+
+        # Construct matching conditions for the merge query
+        conditions = " AND ".join([f"target.{col} = source.{col}" for col in matching_columns])
+
+        # Construct the merge query
+        sql_query = f"""
+        MERGE INTO delta.`{save_output_path}` AS target
+        USING temp_view AS source
+        ON {conditions}
+        WHEN MATCHED THEN
+        UPDATE SET *
+        WHEN NOT MATCHED THEN
+        INSERT *
+        """
+
+        # Execute the merge query
+        self.logger.info(f'Starting merge query: {sql_query}')
+        self.spark.sql(sql_query)
+
+        self.logger.info("Merge operation completed successfully.")

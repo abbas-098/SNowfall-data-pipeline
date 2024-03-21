@@ -1,5 +1,6 @@
 from snowfall_pipeline.common_utilities.transform_base import TransformBase
 from snowfall_pipeline.common_utilities.decorators import transformation_timer
+from snowfall_pipeline.common_utilities.data_quality_rules import dq_rules
 from delta.tables import *
 
 
@@ -9,40 +10,14 @@ class PreparationLocationHierarchy(TransformBase):
         super().__init__(spark, sc, glueContext)
         self.spark.conf.set("spark.sql.shuffle.partitions", "5") 
         self.pipeline_config = self.full_configs[self.datasets]
-        self.dq_rule = """Rules = [
-        ColumnCount = 76,
-        RowCount > 0,
-        IsComplete "STORE_NUMBER",
-        IsComplete "STORE_NAME"
-        ]"""
+        self.dq_rule = dq_rules.get(self.datasets)
         self.file_path = "ods/location_hierarchy"
         self.list_of_files = self.aws_instance.get_files_in_s3_path(f"{self.raw_bucket_name}/{self.file_path}/")
 
 
     def get_data(self):
-        """
-        Retrieve data from the specified file path.
-
-        Reads CSV data from the specified S3 file path and logs the number of records in the DataFrame.
-
-        Returns:
-        - DataFrame: DataFrame containing the retrieved data.
-        """
-        # Log the file path from where data is being read
-        self.logger.info(f'Reading data in the file path: s3://{self.raw_bucket_name}/{self.file_path}/')
-        
-        # Read data from the specified S3 file path
-        if len(self.list_of_files) > 0 :
-            source_df = self.spark.read.csv(f"s3://{self.raw_bucket_name}/{self.file_path}/",header = True)
-        else:
-            message = f"The file path: s3://{self.raw_bucket_name}/{self.file_path}/ is empty."
-            raise Exception(message)
-        
-        
-        # Log the number of records in the DataFrame
-        self.logger.info(f'Number of records in dataframe: {source_df.count()}')
-        
-        return source_df
+        df = self.read_data_from_s3(self.raw_bucket_name,self.file_path,'csv')
+        return df
 
 
     def transform_data(self, df):
@@ -63,10 +38,7 @@ class PreparationLocationHierarchy(TransformBase):
         """
 
         # Step 1: Remove duplicate records
-        self.logger.info('Removing duplicate records')
-        df = df.dropDuplicates()
-        self.logger.info(f'Number of records in dataframe after dropping duplicates: {df.count()}')
-
+        df = self.dropping_duplicates(df)
 
         # Step 2: Data quality check
         df = self.data_quality_check(df, self.dq_rule,self.pipeline_config.get('primary_key'), self.raw_bucket_name, self.file_path, 'json')
@@ -77,7 +49,6 @@ class PreparationLocationHierarchy(TransformBase):
         return df
 
 
-    @transformation_timer
     def save_data(self, df):
         """
         Save DataFrame to an S3 location and create/update a Delta table if needed.
@@ -104,19 +75,8 @@ class PreparationLocationHierarchy(TransformBase):
         else:
 
             # Merge data to the Delta table
-            df.createOrReplaceTempView("temp_view")
-            sql_query = f"""
-            MERGE INTO delta.`{save_output_path}` AS target
-            USING temp_view AS source
-            ON target.STORE_NUMBER = source.STORE_NUMBER
-            AND target.STORE_NAME = source.STORE_NAME
-            WHEN MATCHED THEN
-            UPDATE SET *
-            WHEN NOT MATCHED THEN
-            INSERT *
-            """
-            self.logger.info(f'Starting merge query: {sql_query}')
-            self.spark.sql(sql_query)
+            merge_columns = ['STORE_NUMBER','STORE_NAME']
+            self.merge_to_delta_table(df,save_output_path,merge_columns)
 
         
         # Move files to the Archive folder
