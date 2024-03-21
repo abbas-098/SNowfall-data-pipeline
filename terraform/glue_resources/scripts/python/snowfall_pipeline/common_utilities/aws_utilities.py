@@ -118,32 +118,6 @@ class AwsUtilities:
         return files_list
     
     
-    def check_if_delta_table_exists(self, spark, s3_path):
-        """
-        Check if a Delta table exists at the specified S3 path.
-
-        Parameters:
-        - spark (SparkSession): The SparkSession object.
-        - s3_path (str): The S3 path where the Delta table is located.
-
-        Returns:
-        - bool: True if the Delta table exists, False otherwise.
-        """
-        try:
-            # Attempt to load the Delta table
-            spark.read.format("delta").load(s3_path)
-            
-            # Log information if the Delta table exists
-            self.logger.info(f"Delta table exists at: {s3_path}")
-            
-            return True
-        except AnalysisException:
-            # Log information if failed to read the Delta table
-            self.logger.info(f'Failed to read delta table at : {s3_path}')
-            
-            return False
-
-
     def move_s3_object(self, bucket_name, source_object_key, destination_object_key):
         """Moves an object within S3 from one key to another.
 

@@ -1,7 +1,7 @@
 from snowfall_pipeline.common_utilities.transform_base import TransformBase
 from snowfall_pipeline.common_utilities.decorators import transformation_timer
 from snowfall_pipeline.common_utilities.data_quality_rules import dq_rules
-from delta.tables import *
+from delta.tables import DeltaTable
 
 
 class PreparationLocation(TransformBase):
@@ -65,7 +65,7 @@ class PreparationLocation(TransformBase):
         save_output_path = f"s3://{self.preparation_bucket_name}/{self.file_path}/"
 
         # Check if Delta table needs to be created
-        if not self.aws_instance.check_if_delta_table_exists(self.spark,save_output_path):
+        if DeltaTable.isDeltaTable(self.spark,save_output_path):
             self.athena_trigger = True
             
         # Determine whether to create or merge to the Delta table
