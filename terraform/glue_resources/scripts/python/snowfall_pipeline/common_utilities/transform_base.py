@@ -543,7 +543,8 @@ class TransformBase:
             'dataqualityrulesskip', 
             'dataqualityevaluationresult', 
             'cdc_timestamp', 
-            'cdc_glue_workflow_id'
+            'cdc_glue_workflow_id',
+            'unique_guid'
         ]
 
         if columns_to_drop:
