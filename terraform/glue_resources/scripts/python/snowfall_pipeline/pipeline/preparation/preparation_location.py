@@ -64,7 +64,7 @@ class PreparationLocation(TransformBase):
         save_output_path = f"s3://{self.preparation_bucket_name}/{self.file_path}/"
 
         # Check if Delta table needs to be created
-        if DeltaTable.isDeltaTable(self.spark,save_output_path):
+        if DeltaTable.isDeltaTable(self.spark,save_output_path) is False:
             self.athena_trigger = True
             
         # Determine whether to create or merge to the Delta table
