@@ -309,19 +309,7 @@ class TransformBase:
 
         return df
         
-    def dropping_dq_columns(self, df):
 
-        """Drop Data Quality related columns from the input DataFrame.
-
-        Args:
-            df (DataFrame): The input DataFrame containing Data Quality columns.
-
-        Returns:
-            DataFrame: The DataFrame with Data Quality columns dropped.
-        """
-        columns_to_drop = ["DataQualityRulesPass", "DataQualityRulesFail", "DataQualityRulesSkip", "DataQualityEvaluationResult"]
-        return df.drop(*columns_to_drop)
-    
     @transformation_timer
     def transform_struct_to_string(self, df):
         """
@@ -402,7 +390,6 @@ class TransformBase:
             file_path (str): The path to the file in the S3 bucket.
             file_format (str, optional): The format of the file to read. Supported formats: 'json', 'csv','delta'. Defaults to 'json'.
             appflow_config (str, optional): If there is an appflow config, it is passed in to get rows extracted. Defaults to None.
-            ccd_filder (bool) : Determine the changed dataset boolean. Defaults to False.
 
         Returns:
             DataFrame: The DataFrame containing the read data.
@@ -422,6 +409,8 @@ class TransformBase:
             # Find the maximum date in the 'cdc_timestamp' column
             max_date = source_df.select(F.max("cdc_timestamp")).collect()[0][0]
 
+            self.logger.info(f"Max date is {max_date}")
+
             # Filter DataFrame to select rows with the maximum date
             source_df = source_df.filter(F.col("cdc_timestamp") == max_date)
 
@@ -432,8 +421,7 @@ class TransformBase:
         self.logger.info(f'Number of records in dataframe: {source_df.count()}')
 
         # Log the number of records processed from AppFlow if available
-        if appflow_row_number is not None:
-
+        if appflow_config is not None:
             # Extract the number of records processed from AppFlow
             appflow_row_number = self.aws_instance.extract_appflow_records_processed(self.list_of_files, appflow_config)
             self.logger.info(f'Number of records processed from appflow: {appflow_row_number}')
@@ -494,7 +482,7 @@ class TransformBase:
         self.logger.info("Merge operation completed successfully.")
 
     @transformation_timer
-    def remove_trailing_whitespace(self,df):
+    def remove_trailing_whitespace(self, df):
         """
         Remove trailing spaces from string columns
 
@@ -504,9 +492,10 @@ class TransformBase:
         Returns:
             DataFrame: The cleaned DataFrame.
         """
-        # Remove trailing spaces from string columns
-        for col_name in df.columns:
-                df = df.withColumn(col_name, F.rtrim(F.col(col_name)))
+        # Remove trailing spaces only from string columns
+        for col_name, col_type in df.dtypes:
+            if col_type == StringType():
+                df = df.withColumn(col_name, F.rtrim(col_name))
         return df
 
     @transformation_timer

@@ -111,7 +111,7 @@ class ProcessedLocationHierarchy(TransformBase):
             'fs_known_as': ('Fs_Known_As', 'string'),
             'fs_email': ('Fs_Email', 'string'),
             'fs_eid': ('Fs_Eid', 'string'),
-            'fs_employee_no': ('Fs_Employee,No', 'string')
+            'fs_employee_no': ('Fs_Employee_No', 'string')
         
         }
         # 2. Changes column names and schema
