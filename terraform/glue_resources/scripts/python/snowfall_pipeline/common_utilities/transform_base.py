@@ -227,7 +227,10 @@ class TransformBase:
         """
 
         self.logger.info('Exporting the records that have failed data quality checks...')
-        self.dropping_dq_columns(df)
+        
+        columns_to_drop = ['dataqualityrulespass','dataqualityrulesfail','dataqualityrulesskip','dataqualityevaluationresult']
+        df = df.drop(columns_to_drop)
+
         workflow_run_id = self.aws_instance.get_glue_env_var('WORKFLOW_RUN_ID')
         error_path = f"s3://{bucket_name}/error/{s3_path_prefix}/{workflow_run_id}/dq_fail_rows/"
 
@@ -495,7 +498,7 @@ class TransformBase:
         # Remove trailing spaces only from string columns
         for col_name, col_type in df.dtypes:
             if col_type == StringType():
-                df = df.withColumn(col_name, F.rtrim(col_name))
+                df = df.withColumn(col_name, F.trim(col_name))
         return df
 
     @transformation_timer
@@ -558,3 +561,103 @@ class TransformBase:
         modified_df = df.drop(*all_columns_to_drop)
 
         return modified_df
+    
+    
+    @transformation_timer
+    def split_json_column(self,df, columns):
+        """
+        Parse JSON strings in specified columns of a DataFrame and create new columns.
+        
+        Args:
+        - df: DataFrame to operate on.
+        - columns: List of column names containing JSON strings.
+        
+        Returns:
+        - DataFrame with new columns containing parsed JSON data.
+        """
+        self.logger.info('Running the split_json_column function')
+        for column in columns:
+
+            # Define schema for the JSON
+            json_schema = "display_value string, link string"
+            
+            # Apply from_json function to parse JSON string
+            df = df.withColumn(f"{column}_json_data", F.from_json(F.col(column), json_schema))
+            
+            # Extract display value and link
+            df = df.withColumn(f"{column}_display_value", F.col(f"{column}_json_data.display_value"))
+            df = df.withColumn(f"{column}_link", F.regexp_extract(F.col(f"{column}_json_data.link"), r'([^/]+)$', 1))
+            
+            # Drop intermediate JSON column
+            df = df.drop(f"{column}_json_data")
+        
+        return df
+    
+    
+    @transformation_timer
+    def split_datetime_column(self,df, input_columns):
+        """
+        Transform the DataFrame by converting timestamp columns, splitting them, and updating data quality metrics.
+
+        Args:
+            df (DataFrame): The input Spark DataFrame.
+            input_columns (list): List of column names to be processed for timestamp conversion.
+
+        Returns:
+            DataFrame: The processed Spark DataFrame.
+        """
+        self.logger.info('Running the split_datetime_column function')
+        timestamp_formats = ["yyyy-MM-dd HH:mm:ss", "dd-MM-yyyy HH:mm:ss"]
+        
+        for col_name in input_columns:
+            check = F.lit(None).cast("timestamp")
+            for fmt in timestamp_formats:
+                current_check = F.unix_timestamp(F.col(col_name), fmt).cast("timestamp")
+                check = F.coalesce(check, current_check)
+
+            df = df.withColumn(f"{col_name}_checked", check)
+
+            df = df.withColumn(
+                f"{col_name}_dt", F.col(f"{col_name}_checked").cast("date")
+            ).withColumn(
+                f"{col_name}_timestamp", F.expr(f"substring({col_name}_checked, 12, 8)")
+            )
+
+            df = df.withColumn(
+                "DataQualityEvaluationResult",
+                F.when(
+                    (F.col(col_name).isNull() | (F.col(col_name) == "") | F.col(f"{col_name}_checked").isNull()),
+                    F.lit("Failed")
+                ).otherwise(F.col("DataQualityEvaluationResult"))
+            )
+
+            df = df.drop(f"{col_name}_checked")
+
+        return df
+
+    @transformation_timer
+    def filter_quality_result(self,df, option):
+        """
+        Filter DataFrame records based on the DataQualityEvaluationResult.
+
+        Args:
+            df (DataFrame): The input Spark DataFrame.
+            option (str): The option to filter by ('Passed' or 'Failed').
+
+        Returns:
+            DataFrame: 
+            The filtered DataFrame. However if the option Failed 
+            is passed then nothing is passed
+        """
+        self.logger.info('Running the filter_quality_result function')
+        if option.lower() == "passed":
+            return df.filter(df["DataQualityEvaluationResult"] == "Passed")
+        elif option.lower() == "failed":
+            df_failed = df.filter(df["DataQualityEvaluationResult"] == "Failed")
+            if not df_failed.isEmpty():
+                # Logic here for when it fails #TODO
+                pass
+            else:
+                self.logger.info('No failed records detected in the dataframe')
+        else:
+            raise ValueError("Invalid option. Please provide 'Passed' or 'Failed'.")
