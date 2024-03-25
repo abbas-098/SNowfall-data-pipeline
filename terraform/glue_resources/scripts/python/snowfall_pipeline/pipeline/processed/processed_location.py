@@ -26,10 +26,9 @@ class ProcessedLocation(TransformBase):
         2. Splits JSON column
         3. Splits datetime column
         4. Splits location string
-        5. Filters records based on quality result
-        6. Filters passed records
-        7. Gets unique records
-        8. Drops unnecessary columns
+        5. Filters passed records
+        6. Gets unique records
+        7. Drops unnecessary columns
 
         Parameters:
         - df (DataFrame): Input DataFrame.
@@ -49,16 +48,13 @@ class ProcessedLocation(TransformBase):
         # Step 4: Splits location string
         df = self._transform_location_split(df, ['full_name'])
 
-        # Step 5: Filters records based on quality result (failed)
-        self.filter_quality_result(df, 'Failed')
+        # Step 5: Filters passed records
+        df = self.filter_quality_result(df)
 
-        # Step 6: Filters passed records
-        df = self.filter_quality_result(df, 'Passed')
-
-        # Step 7: Gets unique records
+        # Step 6: Gets unique records
         df = self.get_unique_records_sql(df)
 
-        # Step 8: Drops unnecessary columns
+        # Step 7: Drops unnecessary columns
         df = self.drop_columns_for_processed(df)
 
         return df

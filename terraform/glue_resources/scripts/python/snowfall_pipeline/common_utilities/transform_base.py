@@ -636,30 +636,28 @@ class TransformBase:
         return df
 
     @transformation_timer
-    def filter_quality_result(self,df, option):
+    def filter_quality_result(self, df):
         """
         Filter DataFrame records based on the DataQualityEvaluationResult.
 
         Args:
             df (DataFrame): The input Spark DataFrame.
-            option (str): The option to filter by ('Passed' or 'Failed').
 
         Returns:
-            DataFrame: 
-            The filtered DataFrame. However if the option Failed 
-            is passed then nothing is passed
+            DataFrame: The filtered DataFrame containing only passed records.
         """
-        if option.lower() == "passed":
-            self.logger.info('Running the filter_quality_result function to see the passed rows')
-            return df.filter(df["DataQualityEvaluationResult"] == "Passed")
-        
-        elif option.lower() == "failed":
-            self.logger.info('Running the filter_quality_result function to see the failed rows')
-            df_failed = df.filter(df["DataQualityEvaluationResult"] == "Failed")
-            if not df_failed.isEmpty():
-                # Logic here for when it fails #TODO
-                pass
-            else:
-                self.logger.info('No failed records detected in the dataframe')
-        else:
-            raise ValueError("Invalid option. Please provide 'Passed' or 'Failed'.")
+
+        self.logger.info('Running the filter_quality_result function')
+
+        df_failed = df.filter(df["DataQualityEvaluationResult"] == "Failed")
+
+        if not df_failed.isEmpty():
+            # TODO: Add your logic here for handling failed records
+            self.logger.info('Handling failed records...')
+            # For example, you can print the failed records
+            df_failed.show()
+
+        # Filter DataFrame for passed records and return it
+        df_passed = df.filter(df["DataQualityEvaluationResult"] == "Passed")
+        self.logger.info('Returning the DataFrame with passed records')
+        return df_passed
