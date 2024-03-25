@@ -1,6 +1,7 @@
 from snowfall_pipeline.common_utilities.transform_base import TransformBase
 from delta.tables import DeltaTable
 from pyspark.sql import functions as F
+from snowfall_pipeline.common_utilities.decorators import transformation_timer
 
 class ProcessedLocation(TransformBase):
 
@@ -49,7 +50,7 @@ class ProcessedLocation(TransformBase):
         df = self._transform_location_split(df, ['full_name'])
 
         # Step 5: Filters records based on quality result (failed)
-        df = self.filter_quality_result(df, 'Failed')
+        self.filter_quality_result(df, 'Failed')
 
         # Step 6: Filters passed records
         df = self.filter_quality_result(df, 'Passed')
@@ -98,7 +99,7 @@ class ProcessedLocation(TransformBase):
 
 
 
-
+    @transformation_timer
     def _transform_location_split(self,df, column_names):
         """
         Apply the split location string transformation to specified columns in the DataFrame.
@@ -110,6 +111,7 @@ class ProcessedLocation(TransformBase):
         Returns:
             DataFrame: The DataFrame with split location columns.
         """
+        self.logger.info('Running the transform_location_split function')
         for column_name in column_names:
             is_numeric = F.col(column_name).rlike("^[0-9]+$")
             is_alphabetic = F.col(column_name).rlike("^[a-zA-Z\s]+$")

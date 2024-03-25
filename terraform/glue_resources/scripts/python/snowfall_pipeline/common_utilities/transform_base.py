@@ -649,10 +649,11 @@ class TransformBase:
             The filtered DataFrame. However if the option Failed 
             is passed then nothing is passed
         """
-        self.logger.info('Running the filter_quality_result function')
         if option.lower() == "passed":
+            self.logger.info('Running the filter_quality_result function to see the passed rows')
             return df.filter(df["DataQualityEvaluationResult"] == "Passed")
         elif option.lower() == "failed":
+            self.logger.info('Running the filter_quality_result function to see the failed rows')
             df_failed = df.filter(df["DataQualityEvaluationResult"] == "Failed")
             if not df_failed.isEmpty():
                 # Logic here for when it fails #TODO
