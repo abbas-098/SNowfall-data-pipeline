@@ -272,7 +272,7 @@ class ProcessedLocation(TransformBase):
         else:
 
             # Merge data to the Delta table
-            merge_columns = ['full_name','sys_created_on']
+            merge_columns = ['restaurant_id','restaurant_name','created_date','created_time']
             self.merge_to_delta_table(df,save_output_path,merge_columns)
 
         
