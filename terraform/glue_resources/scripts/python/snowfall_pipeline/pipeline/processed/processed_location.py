@@ -58,7 +58,7 @@ class ProcessedLocation(TransformBase):
 
         # Step 7: Selecting Columns that I want to take to processed layer
         df = df.select(
-        'city'
+        'city',
         'cmn_location_source',
         'cmn_location_type',
         'company',
@@ -321,11 +321,12 @@ class ProcessedLocation(TransformBase):
 
         return df
 
-
+    @transformation_timer
     def get_unique_records_sql(self,df):
         """
         Run the SQL query on the dataframe.
         """
+        self.logger.info('Running the get_unique_records function.')
         df.createOrReplaceTempView("my_dataframe")
         query =  """
                 SELECT a.*
