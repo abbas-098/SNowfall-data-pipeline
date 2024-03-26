@@ -517,18 +517,19 @@ class TransformBase:
         return df
 
     @transformation_timer
-    def change_column_names_and_schema(self,df, column_mapping):
+    def change_column_names_and_schema(self, df, column_mapping):
         """
         Change column names and schema of a PySpark DataFrame.
 
         Parameters:
             df (DataFrame): The PySpark DataFrame to modify.
             column_mapping (dict): A dictionary mapping original column names to new column names and schemas.
-        
+
         Example:
             column_mapping = {
-                'name'  : ('full_name','string'),
-                'age'   : ('years_old','integer')  
+                'name': ('full_name', 'string'),
+                'age': ('years_old', 'integer'),
+                'time_column': ('time_column', 'time')  # Add time column here
             }
 
         Returns:
@@ -538,7 +539,10 @@ class TransformBase:
         # Rename columns and update data types
         for old_col_name, (new_col_name, new_col_type) in column_mapping.items():
             df = df.withColumnRenamed(old_col_name, new_col_name)
-            df = df.withColumn(new_col_name, df[new_col_name].cast(new_col_type))
+            if new_col_type == 'time':
+                df = df.withColumn(new_col_name, F.date_format(df[new_col_name], 'HH:mm:ss'))
+            else:
+                df = df.withColumn(new_col_name, df[new_col_name].cast(new_col_type))
 
         return df
 
