@@ -88,7 +88,7 @@ class TransformBase:
             if 'Preparation' in self.__class__.__name__:
                 for i in self.list_of_files:
                     self.aws_instance.move_s3_object(self.raw_bucket_name, i, f"error/{i}") 
-                    self.aws_instance.send_sns_message(e)
+                self.aws_instance.send_sns_message(e)
                 raise e
             else:
                 self.aws_instance.send_sns_message(e)
@@ -229,7 +229,7 @@ class TransformBase:
         self.logger.info('Exporting the records that have failed data quality checks...')
         
         columns_to_drop = ['dataqualityrulespass','dataqualityrulesfail','dataqualityrulesskip','dataqualityevaluationresult']
-        df = df.drop(columns_to_drop)
+        df = df.drop(*columns_to_drop)
 
         workflow_run_id = self.aws_instance.get_glue_env_var('WORKFLOW_RUN_ID')
         error_path = f"s3://{bucket_name}/error/{s3_path_prefix}/{workflow_run_id}/dq_fail_rows/"

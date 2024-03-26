@@ -35,28 +35,26 @@ class ProcessedLocation(TransformBase):
         Returns:
         - DataFrame: Transformed DataFrame.
         """
-        # Step 1: Removes trailing whitespaces
-        df = self.remove_trailing_whitespace(df)
 
-        # Step 2: Splits JSON column
+        # Step 1: Splits JSON column
         df = self.split_json_column(df, self.pipeline_config.get('transform_json'))
 
-        # Step 3: Splits datetime column
+        # Step 2: Splits datetime column
         df = self.split_datetime_column(df, self.pipeline_config.get('process_timestamp'))
 
-        # Step 4: Splits location string
+        # Step 3: Splits location string
         df = self._transform_location_split(df, ['full_name'])
 
-        # Step 5: Filters passed records
+        # Step 4: Filters passed records
         df = self.filter_quality_result(df)
 
-        # Step 6: Gets unique records
+        # Step 5: Gets unique records
         df = self.get_unique_records_sql(df)
 
-        # Step 7: Drops unnecessary columns
+        # Step 6: Drops unnecessary columns
         df = self.drop_columns_for_processed(df)
 
-        # Step 8: Selecting Columns that I want to take to processed layer
+        # Step 7: Selecting Columns that I want to take to processed layer
         df = df.select(
         'city'
         'cmn_location_source',
