@@ -26,8 +26,9 @@ class PreparationLocation(TransformBase):
         This method executes the following steps:
         1. Remove duplicate records.
         2. Convert all structs to strings.
-        3. Perform data quality check.
-        4. Add CDC columns.
+        3. Remove Trailing Whitespaces
+        4. Perform data quality check.
+        5. Add CDC columns.
 
         Parameters:
         - df: Input DataFrame.
@@ -43,10 +44,13 @@ class PreparationLocation(TransformBase):
         # Step 2: Convert all structs to strings
         df = self.transform_struct_to_string(df)
 
-        # Step 3: Data quality check
+        # Step 3: Removes trailing whitespaces
+        df = self.remove_trailing_whitespace(df)
+
+        # Step 4: Data quality check
         df = self.data_quality_check(df, self.dq_rule,self.pipeline_config.get('primary_key'), self.raw_bucket_name, self.file_path, 'json')
 
-        # Step 4: Add CDC columns
+        # Step 5: Add CDC columns
         df = self.adding_cdc_columns(df)
 
         return df

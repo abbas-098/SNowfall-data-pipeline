@@ -388,11 +388,11 @@ class TransformBase:
 
         # Extract year and month from the timestamp column based on the detected format
         if timestamp_format == "dd-MM-yyyy HH:mm:ss":
-            df = df.withColumn(f"{prefix}_year", F.split(F.col("date_components")[0], "-")[2].cast("string"))
-            df = df.withColumn(f"{prefix}_month", F.split(F.col("date_components")[0], "-")[1].cast("string"))
+            df = df.withColumn(f"{prefix}_year", F.split(F.col("date_components")[0], "-")[2].cast("integer"))
+            df = df.withColumn(f"{prefix}_month", F.split(F.col("date_components")[0], "-")[1].cast("integer"))
         else:
-            df = df.withColumn(f"{prefix}_year", F.year(F.col("date_components")[0]).cast("string"))
-            df = df.withColumn(f"{prefix}_month", F.month(F.col("date_components")[0]).cast("string"))
+            df = df.withColumn(f"{prefix}_year", F.year(F.col("date_components")[0]).cast("integer"))
+            df = df.withColumn(f"{prefix}_month", F.month(F.col("date_components")[0]).cast("integer"))
 
         # Drop the intermediate column
         df = df.drop("date_components")

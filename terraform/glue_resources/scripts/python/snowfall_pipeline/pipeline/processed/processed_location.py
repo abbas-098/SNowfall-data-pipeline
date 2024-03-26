@@ -22,13 +22,12 @@ class ProcessedLocation(TransformBase):
         Transform the given DataFrame.
 
         This method executes the following steps:
-        1. Removes trailing whitespaces
-        2. Splits JSON column
-        3. Splits datetime column
-        4. Splits location string
-        5. Filters passed records
-        6. Gets unique records
-        7. Drops unnecessary columns
+        1. Splits JSON column
+        2. Splits datetime column
+        3. Splits location string
+        4. Filters passed records
+        5. Gets unique records
+        6. Drops unnecessary columns
 
         Parameters:
         - df (DataFrame): Input DataFrame.
@@ -56,6 +55,100 @@ class ProcessedLocation(TransformBase):
 
         # Step 7: Drops unnecessary columns
         df = self.drop_columns_for_processed(df)
+
+        # Step 8: Selecting Columns that I want to take to processed layer
+        df = df.select(
+        'city'
+        'cmn_location_source',
+        'cmn_location_type',
+        'company',
+        'contact',
+        'coordinates_retrieved_on',
+        'country',
+        'duplicate',
+        'fax_phone',
+        'lat_long_error',
+        'latitude',
+        'life_cycle_stage',
+        'life_cycle_stage_status',
+        'longitude',
+        'managed_by_group',
+        'parent',
+        'phone',
+        'phone_territory',
+        'primary_location',
+        'state',
+        'stock_room',
+        'street',
+        'sys_created_by',
+        'sys_id',
+        'sys_mod_count',
+        'sys_tags',
+        'sys_updated_by',
+        'time_zone',
+        'u_adsl_line',
+        'u_adsl_line2',
+        'u_comms_line_contract_id',
+        'u_drive_thru',
+        'u_email',
+        'u_fit',
+        'u_friday_close',
+        'u_friday_open',
+        'u_go_live',
+        'u_mcduk_mccafe',
+        'u_mcduk_store_number',
+        'u_monday_close',
+        'u_monday_open',
+        'u_nlg',
+        'u_otp',
+        'u_ownership',
+        'u_projects',
+        'u_restaurant_build_url',
+        'u_restaurant_close_date',
+        'u_rlg1',
+        'u_saturday_close',
+        'u_saturday_open',
+        'u_sunday_close',
+        'u_sunday_open',
+        'u_supporting_role',
+        'u_thursday_close',
+        'u_thursday_open',
+        'u_tuesday_close',
+        'u_tuesday_open',
+        'u_type',
+        'u_type_of_phone',
+        'u_wednesday_close',
+        'u_wednesday_open',
+        'zip',
+        'u_franchisee_regional_manager_display_value',
+        'u_franchisee_regional_manager_link',
+        'u_regional_manager_display_value',
+        'u_regional_manager_link',
+        'u_fanchisee_display_value',
+        'u_fanchisee_link',
+        'u_franchisees_chief_ops_manager_display_value',
+        'u_franchisees_chief_ops_manager_link',
+        'u_franchisees_ops_manager_display_value',
+        'u_franchisees_ops_manager_link',
+        'u_director_display_value',
+        'u_director_link',
+        'u_chief_ops_officer_display_value',
+        'u_chief_ops_officer_link',
+        'u_franchisees_consultant_display_value',
+        'u_franchisees_consultant_link',
+        'u_franchisees_director_display_value',
+        'u_franchisees_director_link',
+        'u_ops_manager_display_value',
+        'u_ops_manager_link',
+        'sys_updated_on_dt',
+        'sys_updated_on_timestamp',
+        'sys_created_on_dt',
+        'sys_created_on_timestamp',
+        'full_name_restaurant_id',
+        'full_name_restaurant_name'
+        )
+
+        # Step 9: Changing Column Names 
 
         return df
 
