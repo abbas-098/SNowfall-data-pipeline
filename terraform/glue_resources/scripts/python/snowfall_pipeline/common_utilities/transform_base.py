@@ -359,29 +359,44 @@ class TransformBase:
 
         return df
 
-    def create_partition_date_columns(self,df, timestamp_column):
+    def create_partition_date_columns(self,df, timestamp_column, prefix):
         """
-        Extracts day, month, and year from a timestamp column and adds them as partition columns with string type.
+        Extracts month and year from a timestamp column and adds them as partition columns with string type.
 
         Args:
             df (DataFrame): Input PySpark DataFrame.
-            timestamp_column (str): Name of the timestamp column containing dates in the format dd-mm-yyyy HH:mm:ss.
+            timestamp_column (str): Name of the timestamp column containing dates in the format dd-mm-yyyy HH:mm:ss or yyyy-MM-dd HH:mm:ss.
+            prefix (str) : Prefix you want with the column name
 
         Returns:
-            DataFrame: PySpark DataFrame with day, month, and year extracted as partition columns.
+            DataFrame: PySpark DataFrame with month and year extracted as partition columns.
 
         """
+        # Get the first value of the timestamp column
+        first_timestamp_value = df.select(timestamp_column).head()[timestamp_column]
+
+        # Check the length of the date components after splitting by "-"
+        if len(first_timestamp_value.split("-")[0]) == 4:
+            # If the first component has length 4, assume the format is 'yyyy-MM-dd HH:mm:ss'
+            timestamp_format = "yyyy-MM-dd HH:mm:ss"
+        else:
+            # Otherwise, assume the format is 'dd-MM-yyyy HH:mm:ss'
+            timestamp_format = "dd-MM-yyyy HH:mm:ss"
+
         # Split the timestamp into date and time components
         df = df.withColumn("date_components", F.split(F.col(timestamp_column), " "))
-        
-        # Split the date component into day, month, and year
-        df = df.withColumn("day_partition", F.split(df.date_components[0], "-")[0].cast("string"))
-        df = df.withColumn("month_partition", F.split(df.date_components[0], "-")[1].cast("string"))
-        df = df.withColumn("year_partition", F.split(df.date_components[0], "-")[2].cast("string"))
-        
+
+        # Extract year and month from the timestamp column based on the detected format
+        if timestamp_format == "dd-MM-yyyy HH:mm:ss":
+            df = df.withColumn(f"{prefix}_year", F.split(F.col("date_components")[0], "-")[2].cast("string"))
+            df = df.withColumn(f"{prefix}_month", F.split(F.col("date_components")[0], "-")[1].cast("string"))
+        else:
+            df = df.withColumn(f"{prefix}_year", F.year(F.col("date_components")[0]).cast("string"))
+            df = df.withColumn(f"{prefix}_month", F.month(F.col("date_components")[0]).cast("string"))
+
         # Drop the intermediate column
         df = df.drop("date_components")
-        
+
         return df
 
     def read_data_from_s3(self,bucket_name,file_path, file_format='json',appflow_config = None):

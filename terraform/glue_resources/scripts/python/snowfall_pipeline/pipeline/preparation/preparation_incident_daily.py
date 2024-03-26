@@ -57,7 +57,7 @@ class PreparationIncidentDaily(TransformBase):
         df = self.adding_cdc_columns(df)
 
         # Step 6: Adding Partiton Columns
-        df = self.create_partition_date_columns(df,'sys_created_on')
+        df = self.create_partition_date_columns(df,'sys_created_on','created')
 
         return df
 
@@ -83,7 +83,7 @@ class PreparationIncidentDaily(TransformBase):
 
             # Create the Delta table
             df.write.format("delta").mode("overwrite") \
-            .partitionBy('year_partition','month_partition','day_partition') \
+            .partitionBy('created_year','created_month') \
             .save(save_output_path)
 
             # Execute Athena query to create the table
@@ -92,7 +92,7 @@ class PreparationIncidentDaily(TransformBase):
         else:
 
             # Merge data to the Delta table
-            merge_columns = ['number','sys_created_on','state','year_partition','month_partition','day_partition']
+            merge_columns = ['number','sys_created_on','state','created_year','created_month']
             self.merge_to_delta_table(df,save_output_path,merge_columns)
 
         
