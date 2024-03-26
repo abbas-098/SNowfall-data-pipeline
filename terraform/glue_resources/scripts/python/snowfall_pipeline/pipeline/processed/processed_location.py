@@ -28,6 +28,8 @@ class ProcessedLocation(TransformBase):
         4. Filters passed records
         5. Gets unique records
         6. Drops unnecessary columns
+        7. Selecting columns to take to processed layer
+        8. Change column names and schema.
 
         Parameters:
         - df (DataFrame): Input DataFrame.
@@ -146,7 +148,100 @@ class ProcessedLocation(TransformBase):
         'full_name_restaurant_name'
         )
 
-        # Step 9: Changing Column Names 
+        column_mapping = {
+
+            'city': ('city', 'string'),
+            'cmn_location_source': ('cmn_location_source', 'string'),
+            'cmn_location_type': ('cmn_location_type', 'string'),
+            'company': ('company', 'string'),
+            'contact': ('contact', 'string'),
+            'coordinates_retrieved_on': ('coordinates_retrieved_on', 'string'),
+            'country': ('country', 'string'),
+            'duplicate': ('duplicate', 'string'),
+            'fax_phone': ('fax_phone', 'string'),
+            'lat_long_error': ('lat_long_error', 'string'),
+            'latitude': ('latitude', 'double'),
+            'life_cycle_stage': ('life_cycle_stage', 'string'),
+            'life_cycle_stage_status': ('life_cycle_stage_status', 'string'),
+            'longitude': ('longitude', 'double'),
+            'managed_by_group': ('managed_by_group', 'string'),
+            'parent': ('parent', 'string'),
+            'phone': ('phone', 'string'),
+            'phone_territory': ('phone_territory', 'string'),
+            'primary_location': ('primary_location', 'string'),
+            'state': ('state', 'string'),
+            'stock_room': ('stock_room', 'string'),
+            'street': ('street', 'string'),
+            'sys_created_by': ('sys_created_by', 'string'),
+            'sys_id': ('sys_id', 'string'),
+            'sys_mod_count': ('sys_mod_count', 'string'),
+            'sys_tags': ('sys_tags', 'string'),
+            'sys_updated_by': ('sys_updated_by', 'string'),
+            'time_zone': ('time_zone', 'string'),
+            'u_adsl_line': ('u_adsl_line', 'string'),
+            'u_adsl_line2': ('u_adsl_line2', 'string'),
+            'u_comms_line_contract_id': ('u_comms_line_contract_id', 'string'),
+            'u_drive_thru': ('u_drive_thru', 'string'),
+            'u_email': ('u_email', 'string'),
+            'u_fit': ('u_fit', 'string'),
+            'u_friday_close': ('u_friday_close', 'string'),
+            'u_friday_open': ('u_friday_open', 'string'),
+            'u_go_live': ('u_go_live', 'string'),
+            'u_mcduk_mccafe': ('u_mcduk_mccafe', 'string'),
+            'u_mcduk_store_number': ('u_mcduk_store_number', 'string'),
+            'u_monday_close': ('u_monday_close', 'string'),
+            'u_monday_open': ('u_monday_open', 'string'),
+            'u_nlg': ('u_nlg', 'string'),
+            'u_otp': ('u_otp', 'string'),
+            'u_ownership': ('u_ownership', 'string'),
+            'u_projects': ('u_projects', 'string'),
+            'u_restaurant_build_url': ('u_restaurant_build_url', 'string'),
+            'u_restaurant_close_date': ('u_restaurant_close_date', 'string'),
+            'u_rlg1': ('u_rlg1', 'string'),
+            'u_saturday_close': ('u_saturday_close', 'string'),
+            'u_saturday_open': ('u_saturday_open', 'string'),
+            'u_sunday_close': ('u_sunday_close', 'string'),
+            'u_sunday_open': ('u_sunday_open', 'string'),
+            'u_supporting_role': ('u_supporting_role', 'string'),
+            'u_thursday_close': ('u_thursday_close', 'string'),
+            'u_thursday_open': ('u_thursday_open', 'string'),
+            'u_tuesday_close': ('u_tuesday_close', 'string'),
+            'u_tuesday_open': ('u_tuesday_open', 'string'),
+            'u_type': ('u_type', 'string'),
+            'u_type_of_phone': ('u_type_of_phone', 'string'),
+            'u_wednesday_close': ('u_wednesday_close', 'string'),
+            'u_wednesday_open': ('u_wednesday_open', 'string'),
+            'zip': ('zip', 'string'),
+            'u_franchisee_regional_manager_display_value': ('u_franchisee_regional_manager_display_value', 'string'),
+            'u_franchisee_regional_manager_link': ('u_franchisee_regional_manager_link', 'string'),
+            'u_regional_manager_display_value': ('u_regional_manager_display_value', 'string'),
+            'u_regional_manager_link': ('u_regional_manager_link', 'string'),
+            'u_fanchisee_display_value': ('u_fanchisee_display_value', 'string'),
+            'u_fanchisee_link': ('u_fanchisee_link', 'string'),
+            'u_franchisees_chief_ops_manager_display_value': ('u_franchisees_chief_ops_manager_display_value', 'string'),
+            'u_franchisees_chief_ops_manager_link': ('u_franchisees_chief_ops_manager_link', 'string'),
+            'u_franchisees_ops_manager_display_value': ('u_franchisees_ops_manager_display_value', 'string'),
+            'u_franchisees_ops_manager_link': ('u_franchisees_ops_manager_link', 'string'),
+            'u_director_display_value': ('u_director_display_value', 'string'),
+            'u_director_link': ('u_director_link', 'string'),
+            'u_chief_ops_officer_display_value': ('u_chief_ops_officer_display_value', 'string'),
+            'u_chief_ops_officer_link': ('u_chief_ops_officer_link', 'string'),
+            'u_franchisees_consultant_display_value': ('u_franchisees_consultant_display_value', 'string'),
+            'u_franchisees_consultant_link': ('u_franchisees_consultant_link', 'string'),
+            'u_franchisees_director_display_value': ('u_franchisees_consultant_display_value', 'string'),
+            'u_franchisees_director_link': ('u_franchisees_consultant_link', 'string'),
+            'u_ops_manager_display_value': ('u_ops_manager_display_value', 'string'), 
+            'u_ops_manager_link': ('u_ops_manager_link', 'string'),      
+            'sys_updated_on_dt': ('sys_updated_on_dt', 'string'),  
+            'sys_updated_on_timestamp': ('sys_updated_on_timestamp', 'string'), 
+            'sys_created_on_dt': ('sys_created_on_dt', 'string'), 
+            'sys_created_on_timestamp': ('sys_created_on_timestamp', 'string'), 
+            'full_name_restaurant_id': ('full_name_restaurant_id', 'string'),
+            'full_name_restaurant_name': ('full_name_restaurant_name', 'string')
+        }
+
+        # 8. Changes column names and schema
+        df = self.change_column_names_and_schema(df,column_mapping)
 
         return df
 
