@@ -28,10 +28,11 @@ class PreparationIncidentDaily(TransformBase):
         This method executes the following steps:
         1. Remove duplicate records.
         2. Convert all structs to strings.
-        3. Perform data quality check.
-        4. Mask PII Data
-        5. Add CDC columns.
-        6. Add Partition Columns
+        3. Remove trailing whitespaces
+        4. Perform data quality check.
+        5. Mask PII Data
+        6. Add CDC columns.
+        7. Add Partition Columns
 
         Parameters:
         - df: Input DataFrame.
@@ -47,16 +48,19 @@ class PreparationIncidentDaily(TransformBase):
         # Step 2: Convert all structs to strings
         df = self.transform_struct_to_string(df)
 
-        # Step 3: Data quality check
+        # Step 3: Removes trailing whitespaces
+        df = self.remove_trailing_whitespace(df)
+
+        # Step 4: Data quality check
         df = self.data_quality_check(df, self.dq_rule,self.pipeline_config.get('primary_key'), self.raw_bucket_name, self.file_path, 'json')
 
-        # Step 4: Mask PII Information
+        # Step 5: Mask PII Information
         df = self.redact_pii_columns(df,self.pipeline_config.get('redact_pii_columns'))
 
-        # Step 5: Add CDC columns
+        # Step 6: Add CDC columns
         df = self.adding_cdc_columns(df)
 
-        # Step 6: Adding Partiton Columns
+        # Step 7: Adding Partiton Columns
         df = self.create_partition_date_columns(df,'sys_created_on','created')
 
         return df

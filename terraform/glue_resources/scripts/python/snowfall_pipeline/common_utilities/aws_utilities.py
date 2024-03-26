@@ -316,6 +316,7 @@ class AwsUtilities:
 
         try:
             # Start query execution
+            self.logger.info(f"Starting the athena query: {sql_query}")
             response = client.start_query_execution(
                 QueryString=sql_query,
                 ResultConfiguration={
