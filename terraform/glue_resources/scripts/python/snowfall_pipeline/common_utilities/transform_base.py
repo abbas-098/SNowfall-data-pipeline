@@ -675,7 +675,7 @@ class TransformBase:
             # TODO: Add your logic here for handling failed records
             self.logger.info('Handling failed records...')
             # For example, you can print the failed records
-            df_failed.show()
+            print(df_failed.count())
 
         # Filter DataFrame for passed records and return it
         df_passed = df.filter(df["DataQualityEvaluationResult"] == "Passed")
@@ -740,6 +740,7 @@ class TransformBase:
             raise Exception('Unable to join with location table since there is no data. Please run the location workflow.')
         
         location_df = self.spark.read.format("delta").load(location_path)
+        location_df = location_df.select('full_name','restaurant_name','restaurant_id')
         location_key = 'full_name'
 
         # Perform the join
