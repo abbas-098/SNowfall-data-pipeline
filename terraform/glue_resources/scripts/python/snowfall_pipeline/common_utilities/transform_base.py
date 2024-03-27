@@ -4,7 +4,7 @@ from snowfall_pipeline.common_utilities.decorators import transformation_timer
 
 
 from pyspark.sql import functions as F
-from pyspark.sql.types import StructType, StructField, StringType, IntegerType
+from pyspark.sql.types import StructType, StructField, StringType, IntegerType, LongType
 from delta.tables import *
 
 
@@ -15,6 +15,7 @@ from awsgluedq.transforms import EvaluateDataQuality
 import re
 import random
 import string
+import pandas
 from datetime import datetime  
 
 
@@ -680,3 +681,77 @@ class TransformBase:
         df_passed = df.filter(df["DataQualityEvaluationResult"] == "Passed")
         self.logger.info('Returning the DataFrame with passed records')
         return df_passed
+
+
+    @transformation_timer
+    def adding_seconds_column(self,df,input_columns):
+        """
+        Transform the input DataFrame by adding columns for each input column that represent the time in seconds.
+        """
+
+        @F.pandas_udf(LongType())
+        def convert_time_to_seconds_udf(time_series):
+            """
+            Pandas UDF to convert time text to seconds.
+            """
+            unit_to_seconds = {
+                "second": 1, "seconds": 1, "minute": 60, "minutes": 60,
+                "hour": 3600, "hours": 3600, "day": 86400, "days": 86400,
+                "week": 604800, "weeks": 604800, "year": 31536000, "years": 31536000,
+            }
+
+            def convert_time_to_seconds(time_text):
+                try:
+                    matches = re.findall(r"(\d+)\s*(\w+)", time_text if time_text else "")
+                    return sum(
+                        int(value) * unit_to_seconds[unit.lower()]
+                        for value, unit in matches
+                        if unit.lower() in unit_to_seconds
+                    )
+                except Exception:
+                    return 0
+
+            return time_series.apply(convert_time_to_seconds)
+
+        for time_column in input_columns:
+            df = df.withColumn(
+                f"{time_column}_seconds", convert_time_to_seconds_udf(F.col(time_column))
+            )
+        return df
+
+
+    @transformation_timer
+    def join_location_table(self,df,joining_key):
+        """
+        Joins a spark dataframe with the location table
+
+        Args:
+            df (DataFrame): The main DataFrame to join.
+            joining_key (str): The key column in the main DataFrame.
+
+        Returns:
+            DataFrame: The joined DataFrame with updated Data Quality columns.
+        """
+        self.logger.info('Running the join_location_table function')
+
+        # Reading location table and specific key
+        location_path = f"s3://{self.processed_bucket_name}/service_now/location/"
+        if DeltaTable.isDeltaTable(self.spark,location_path) is False:
+            raise Exception('Unable to join with location table since there is no data. Please run the location workflow.')
+        
+        location_df = self.spark.read.format("delta").load(location_path)
+        location_key = 'full_name'
+
+        # Perform the join
+        joined_df = df.join(location_df, F.col(joining_key) == F.col(location_key), how="left")
+
+        # Update Data Quality columns
+        joined_df = joined_df.withColumn(
+            "DataQualityEvaluationResult",
+            F.when(
+                F.col(location_key).isNull(),
+                F.lit("Failed")
+            ).otherwise(F.lit("Passed"))
+        )
+
+        return joined_df
