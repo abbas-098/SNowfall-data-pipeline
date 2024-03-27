@@ -103,5 +103,8 @@
             "OO_EMAIL",
             "FS_EMAIL"
         ]
+    },
+    "amazon_connect":{
+        "primary_key":"queue"
     }
 }

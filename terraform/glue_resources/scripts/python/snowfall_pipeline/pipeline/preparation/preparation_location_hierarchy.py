@@ -40,7 +40,7 @@ class PreparationLocationHierarchy(TransformBase):
         df = self.dropping_duplicates(df)
 
         # Step 2: Data quality check
-        df = self.data_quality_check(df, self.dq_rule,self.pipeline_config.get('primary_key'), self.raw_bucket_name, self.file_path, 'json')
+        df = self.data_quality_check(df, self.dq_rule,self.pipeline_config.get('primary_key'), self.raw_bucket_name, self.file_path, 'csv')
 
         # Step 3: Add CDC columns
         df = self.adding_cdc_columns(df)

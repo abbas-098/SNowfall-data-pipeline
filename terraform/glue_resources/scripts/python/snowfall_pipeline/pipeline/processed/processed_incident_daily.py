@@ -62,8 +62,8 @@ class ProcessedIncidentDaily(TransformBase):
 
         # Step 8: Selecting Columns that I want to take to processed layer
         df = df = df.select(
-        'active',
         'activity_due',
+        'active',
         'additional_assignee_list',
         'approval',
         'approval_history',

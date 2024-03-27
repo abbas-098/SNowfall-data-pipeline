@@ -16,7 +16,13 @@ dq_rules = {
         RowCount > 0,
         IsComplete "number",
         IsComplete "sys_created_on"
-        ]"""
+        ]""",
+    "amazon_connect": """Rules = [
+        ColumnCount = 86,
+        RowCount > 0,
+        IsComplete "queue",
+        IsComplete "file_upload_date"
+    ]""" 
 
 
 }
