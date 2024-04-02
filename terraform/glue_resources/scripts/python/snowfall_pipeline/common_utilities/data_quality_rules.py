@@ -1,7 +1,7 @@
 dq_rules = {
 
     "location": """Rules = [
-        ColumnCount = 76,
+        ColumnCount = 75,
         RowCount > 0,
         IsComplete "sys_created_on"
         ]""",
