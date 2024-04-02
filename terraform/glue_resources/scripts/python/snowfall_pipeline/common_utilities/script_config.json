@@ -106,5 +106,8 @@
     },
     "amazon_connect":{
         "primary_key":"queue"
+    },
+    "adj_trading_hours":{
+        "primary_key":"STORE_NUMBER"
     }
 }

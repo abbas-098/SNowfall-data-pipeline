@@ -22,7 +22,13 @@ dq_rules = {
         RowCount > 0,
         IsComplete "queue",
         IsComplete "file_upload_date"
-    ]""" 
+    ]""" ,
+    "adj_trading_hours": """Rules = [
+        ColumnCount = 9,
+        RowCount > 0,
+        IsComplete "STORE_NUMBER",
+        IsComplete "CHANNEL"
+    ]"""
 
 
 }
