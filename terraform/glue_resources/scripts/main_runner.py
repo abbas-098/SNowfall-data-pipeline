@@ -63,6 +63,7 @@ def main():
     except Exception as e: #TODO ULTIMATE EXCEPTION CATCH FOR ANYTHING OUTSIDE OF PROCESSING
         logger.critical(f"Unhandled exception occurred. Attempting to shut down spark context. Error details:")
         logger.exception(e)
+        raise e
 
 if __name__ == "__main__":
     main()

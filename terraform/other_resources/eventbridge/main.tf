@@ -23,8 +23,8 @@ data "terraform_remote_state" "glue_module" {
   }
 }
 
-resource "aws_cloudwatch_event_rule" "incidents_intraday_event_rule" {
-  name = "uk-snowfall-incidents-intraday-trigger-rule"
+resource "aws_cloudwatch_event_rule" "location_event_rule" {
+  name = "uk-snowfall-location-trigger-rule"
   description   = "Object create events on bucket s3://${data.terraform_remote_state.core_module.outputs.raw_bucket_name}"
   event_pattern = <<EOF
 {
@@ -35,7 +35,7 @@ resource "aws_cloudwatch_event_rule" "incidents_intraday_event_rule" {
     },
     "object": {
       "key": [{
-        "prefix": "service_now/incident/intraday/"
+        "prefix": "service_now/location/"
       }]
     }
   },
@@ -44,9 +44,9 @@ resource "aws_cloudwatch_event_rule" "incidents_intraday_event_rule" {
 EOF
 }
 
-resource "aws_cloudwatch_event_target" "incidents_intraday_target_rule" {
-  rule      = aws_cloudwatch_event_rule.incidents_intraday_event_rule.name
-  arn       = data.terraform_remote_state.glue_module.outputs.incident_intraday_workflow_trigger_arn
+resource "aws_cloudwatch_event_target" "location_rule" {
+  rule      = aws_cloudwatch_event_rule.location_event_rule.name
+  arn       = data.terraform_remote_state.glue_module.outputs.location_workflow_trigger_arn
   role_arn = var.role_assumed_arn
 
 }

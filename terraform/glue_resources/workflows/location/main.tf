@@ -1,7 +1,7 @@
-resource "aws_glue_workflow" "incidents_intraday" {
-  name = "uk-snowfall-incidents-intraday"
+resource "aws_glue_workflow" "location" {
+  name = "uk-snowfall-location"
   tags = var.resource_tags
-  description = "Workflow for the incidents data that is ran overnight"
+  description = "Workflow for the location data"
   max_concurrent_runs = 1
   default_run_properties = {
 
@@ -11,11 +11,11 @@ resource "aws_glue_workflow" "incidents_intraday" {
 }
 
 
-resource "aws_glue_trigger" "incidents_intraday" {
-  name = "uk-snowfall-incidents-intraday-workflow-trigger"
+resource "aws_glue_trigger" "location" {
+  name = "uk-snowfall-location-trigger"
   type = "EVENT"
   enabled = true
-  workflow_name = aws_glue_workflow.incidents_intraday.name
+  workflow_name = aws_glue_workflow.location.name
 
   actions {
     job_name = var.glue_job_name

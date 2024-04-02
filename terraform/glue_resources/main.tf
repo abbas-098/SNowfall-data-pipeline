@@ -88,9 +88,9 @@ resource "aws_glue_job" "main_runner_script" {
 #########################################################
 
 
-# Triggering the incidents-intraday
-module "incident_intraday_module" {
-  source = "./workflows/incidents_intraday"
+# Triggering the loction
+module "location_module" {
+  source = "./workflows/location"
   resource_tags = merge(var.resource_tags,{Environment = var.environment})
   glue_job_name = aws_glue_job.main_runner_script.name
 
