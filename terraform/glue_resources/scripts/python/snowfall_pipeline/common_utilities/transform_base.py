@@ -15,7 +15,6 @@ from awsgluedq.transforms import EvaluateDataQuality
 import re
 import random
 import string
-import pandas
 from datetime import datetime  
 
 

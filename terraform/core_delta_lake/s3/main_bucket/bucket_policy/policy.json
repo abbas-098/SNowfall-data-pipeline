@@ -34,6 +34,21 @@
             },
             "Action": "s3:Put*",
             "Resource": "arn:aws:s3:::eu-central1-${environment}-uk-snowfall-landing-${account_number}/*"
+        },
+        {
+            "Sid": "ODSDataShare",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": [
+                    "arn:aws:iam::295446674139:user/ODSAdmin",
+                    "arn:aws:iam::868442188363:user/ODSAdmin"
+                ]
+            },
+            "Action": "s3:Put*",
+            "Resource": [
+                "arn:aws:s3:::eu-central1-${environment}-uk-snowfall-landing-${account_number}",
+                "arn:aws:s3:::eu-central1-${environment}-uk-snowfall-landing-${account_number}/*"
+            ]
         }
     ]
 }
