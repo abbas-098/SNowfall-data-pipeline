@@ -28,7 +28,7 @@ class RunManager:
     def run_preparation(self, dataset): #TODO THIS IS WHERE OBSCURE EXCEPTIONS AND OUR RESOLUTION SHOULD TAKE PLACE, THEN CONTINURE OR END
         pipeline_instance = self.__fetch_pipeline_class__(group='preparation', dataset=dataset)
         pipeline_instance.process_flow()
-        #run_processed(dataset) # Run processed after preparation
+        self.run_processed(dataset) # Run processed after preparation
 
     def run_processed(self, dataset):
         pipeline_instance = self.__fetch_pipeline_class__(group='processed', dataset=dataset)
