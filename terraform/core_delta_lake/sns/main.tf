@@ -9,3 +9,4 @@ resource "aws_sns_topic_subscription" "email-target" {
   protocol  = "email"
   endpoint  = "abbas-97@outlook.com"
 }
+
