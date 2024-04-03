@@ -7,7 +7,7 @@ from awsglue.utils import getResolvedOptions
 from pyspark.sql.utils import AnalysisException
 from snowfall_pipeline.common_utilities.snowfall_logger import SnowfallLogger
 from botocore.exceptions import ClientError
-import awswrangler as wr
+
 
 class AwsUtilities:
 
@@ -333,21 +333,3 @@ class AwsUtilities:
             self.logger.info(f"An error occurred while creating Athena Delta table: {str(e)}")
        
             return
-        
-    def athena_query_to_df(self, database,sql_query):
-        """
-        Executes an SQL query and returns the result as a DataFrame.
-        
-        Parameters:
-        sql_query (str): The SQL query to execute.
-        
-        Returns:
-        pandas.DataFrame: The result of the SQL query as a DataFrame.
-        """
-        try:
-            # Execute the SQL query with the specified database
-            result_df = wr.athena.read_sql_query(sql=sql_query, database=database)
-            return result_df
-        except Exception as e:
-            # Log the error
-            self.logger.error(f"Error executing SQL query: {e}")

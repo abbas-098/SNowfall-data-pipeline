@@ -73,7 +73,6 @@ resource "aws_glue_job" "main_runner_script" {
     "--enable-observability-metrics"     = "true"
     "--datalake-formats"                 = "delta"
     "--enable-auto-scaling"              = "true"
-    "--additional-python-modules"        = "awswrangler==3.7.2"
     "--conf"                             = "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension --conf spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog"
     "--SNS_TOPIC_ARN"                    = data.terraform_remote_state.core_module.outputs.snowfall_topic_arn
     "--TempDir"                          = data.terraform_remote_state.core_module.outputs.temporary_folder_path
