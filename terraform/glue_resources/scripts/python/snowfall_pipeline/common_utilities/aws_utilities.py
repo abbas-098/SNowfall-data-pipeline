@@ -334,7 +334,7 @@ class AwsUtilities:
        
             return
         
-    def athena_query_to_df(self,sql_query):
+    def athena_query_to_df(self, database,sql_query):
         """
         Executes an SQL query and returns the result as a DataFrame.
         
@@ -345,10 +345,9 @@ class AwsUtilities:
         pandas.DataFrame: The result of the SQL query as a DataFrame.
         """
         try:
-            # Execute the SQL query
-            result_df = wr.athena.read_sql_query(sql_query)
+            # Execute the SQL query with the specified database
+            result_df = wr.athena.read_sql_query(sql=sql_query, database=database)
             return result_df
         except Exception as e:
             # Log the error
             self.logger.error(f"Error executing SQL query: {e}")
-            raise e

@@ -26,6 +26,8 @@ class SemanticDailyIncidents(TransformBase):
         # Format max_date to 'yyyy-mm-dd' format
         formatted_max_date = max_date_obj.strftime('%Y-%m-%d')
 
+        self.logger.info(formatted_max_date)
+
         sql_query = f"""
                 SELECT
                     restaurant_id,
@@ -50,10 +52,10 @@ class SemanticDailyIncidents(TransformBase):
                 FROM uk_snowfall_processed.service_now_incident_daily
                 Where updated_date = cast('{formatted_max_date}' as date)
             """
-        df = self.aws_instance.athena_query_to_df(sql_query)
-        print(df)
+        self.logger.info(sql_query)
+        df = self.aws_instance.athena_query_to_df('uk_snowfall_processed',sql_query)
+        self.logger.info(df)
         return df
-
 
 
 
