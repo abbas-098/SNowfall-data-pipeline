@@ -739,8 +739,8 @@ class TransformBase:
             raise Exception('Unable to join with location table since there is no data. Please run the location workflow.')
         
         location_df = self.spark.read.format("delta").load(location_path)
-        location_df = location_df.select('full_name','restaurant_name','restaurant_id')
-        location_key = 'full_name'
+        location_df = location_df.select('restaurant_full_name','restaurant_name','restaurant_id')
+        location_key = 'restaurant_full_name'
 
         # Perform the join
         joined_df = df.join(location_df, F.col(joining_key) == F.col(location_key), how="left")
