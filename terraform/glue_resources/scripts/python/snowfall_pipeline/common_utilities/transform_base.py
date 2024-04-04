@@ -536,13 +536,20 @@ class TransformBase:
             DataFrame: The modified DataFrame with updated column names and schema.
         """
         self.logger.info('Changing column names and data type')
-        # Rename columns and update data types
+        select_exprs = []
+
+        # Create selectExpr expressions for each column
         for old_col_name, (new_col_name, new_col_type) in column_mapping.items():
-            df = df.withColumnRenamed(old_col_name, new_col_name)
             if new_col_type == 'time':
-                df = df.withColumn(new_col_name, F.date_format(df[new_col_name], 'HH:mm:ss'))
+                select_exprs.append(F.expr(f'date_format({old_col_name}, "HH:mm:ss") as {new_col_name}'))
             else:
-                df = df.withColumn(new_col_name, df[new_col_name].cast(new_col_type))
+                if df.schema[old_col_name].dataType != new_col_type:
+                    select_exprs.append(F.expr(f'cast({old_col_name} as {new_col_type}) as {new_col_name}'))
+                else:
+                    select_exprs.append(F.expr(f'{old_col_name} as {new_col_name}'))
+
+        # Apply selectExpr to perform renaming and type casting in a single operation
+        df = df.selectExpr(*select_exprs)
 
         return df
 
