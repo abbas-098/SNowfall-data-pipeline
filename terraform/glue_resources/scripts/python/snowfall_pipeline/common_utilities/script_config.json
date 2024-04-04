@@ -109,5 +109,155 @@
     },
     "adj_trading_hours":{
         "primary_key":"STORE_NUMBER"
+    },
+    "trading_hours":{
+        "primary_key":"STORE_NUMBER"
+    },
+    "change_request": {
+        "transform_json": [
+            "assignment_group",
+            "business_service",
+            "cab_delegate",
+            "closed_by",
+            "cmdb_ci",
+            "opened_by",
+            "requested_by",
+            "service_offering",
+            "std_change_producer_version",
+            "sys_domain",
+            "u_change_implementer",
+            "assigned_to"
+        ],
+        "add_seconds": [
+            "business_duration",
+            "cab_date_time",
+            "calendar_duration",
+            "time_worked"
+        ],
+        "process_timestamp": [
+            "sys_created_on",
+            "sys_updated_on",
+            "approval_set",
+            "end_date",
+            "work_start",
+            "start_date",
+            "closed_at",
+            "opened_at",
+            "work_end",
+            "cab_date_time",
+            "conflict_last_run"
+        ],
+        "primary_key":"number",
+        "redact_pii_columns":[
+            "comments_and_work_notes",
+            "description",
+            "comments"
+        ],
+        "appflow_name":"UK-SNowFall-ServiceNow-ChangeRequest"
+
+    },
+    "problem_request":{
+        "transform_json":[
+            "opened_by",
+            "sys_domain",
+            "u_franchisee",
+            "business_service",
+            "assignment_group",
+            "service_offering",
+            "u_related_kb",
+            "assigned_to",
+            "u_franchisees_consultant",
+            "location"
+        ],
+        "process_timestamp": [
+            "sys_updated_on",
+            "sys_created_on",
+            "opened_at"
+        ],
+        "redact_pii_columns": [
+            "work_notes",
+            "description",
+            "comments",
+            "comments_and_work_notes",
+            "u_string_1"
+        ],
+        "primary_key":"number",
+        "appflow_name":"UK-SNowFall-ServiceNow-ProblemRequest"
+    },
+    "service_offering":{
+        "transform_json":[
+            "parent",
+            "owned_by",
+            "managed_by",
+            "sys_domain",
+            "duplicate_of"
+        ],
+        "process_timestamp": [
+            "sys_updated_on",
+            "sys_created_on"
+        ],
+        "primary_key":"number",
+        "appflow_name":"UK-SNowFall-ServiceNow-ServiceOffering"
+    },
+    "service_request":{
+        "transform_json":[
+            "requested_for",
+            "opened_by",
+            "sys_domain",
+            "order_guide",
+            "request",
+            "assignment_group",
+            "closed_by",
+            "assigned_to",
+            "cat_item",
+            "business_service"
+        ],
+        "process_timestamp": [
+            "sys_updated_on",
+            "sys_created_on",
+            "closed_at",
+            "opened_at",
+            "approval_set",
+            "due_date"
+        ],
+        "redact_pii_columns": [
+            "work_notes",
+            "comments",
+            "comments_and_work_notes"
+        ],
+        "primary_key":"number",
+        "appflow_name":"UK-SNowFall-ServiceNow-ServiceRequest"
+    },
+    "sys_user_group":{
+        "transform_json":[
+            "manager"
+        ],
+        "process_timestamp": [
+            "sys_updated_on",
+            "sys_created_on"
+        ],
+        "partition_columns":[
+            "sys_created_on_dt"
+        ],
+        "primary_key":"sys_id",
+        "appflow_name":"UK-SNowFall-ServiceNow-SysUserGroup"
+    },
+    "sys_user":{
+        "transform_json":[
+            "building",
+            "sys_domain",
+            "cost_center",
+            "company",
+            "department",
+            "location"
+        ],
+        "process_timestamp": [
+            "last_login_time",
+            "sys_updated_on",
+            "sys_created_on"
+        ],
+        "primary_key":"sys_id",
+        "appflow_name":"UK-SNowFall-ServiceNow-SysUser"
+
     }
 }

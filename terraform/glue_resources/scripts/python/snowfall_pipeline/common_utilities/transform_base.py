@@ -184,7 +184,7 @@ class TransformBase:
                 CASE
                     WHEN DataQualityEvaluationResult = 'Passed' AND 
                          {column_count} = {column_count_expected} AND 
-                         LENGTH(TRIM({pk})) > 1 THEN 'Passed'
+                         LENGTH(TRIM({pk})) >= 1 THEN 'Passed'
                     ELSE 'Failed'
                 END
             """)
