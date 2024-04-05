@@ -33,6 +33,7 @@ class TransformBase:
         sns_trigger (bool) : Checks whethers the SNS notification needs to be triggered
         athena_trigger (bool) : Checks whethers athena table needs to be created
         list_of_files : Currently set at None, but when each class inherits this it will set a value. Set here so I can use logic to move files
+        file_path : Currently set at None, but when each class inherits this it will set a value. Set here so I can use logic to filter records.
         account_number (str): Account number that we utilize in AWS used to generate the bucket names.
         environment (str): Environment that we utilize in AWS used to generate the bucket names.
         full_config (dict): Full configuration read from the script_config file in the common_utilities folders.
@@ -41,6 +42,7 @@ class TransformBase:
         processed_bucket_name (str): Name of the processed bucket.
         semantic_bucket_name (str): Name of the semantic bucket.
         datasets (str) : Dataset name pulled from glue workflow propeties
+        group (str) : Group name pulled from glue workflow propeties
     """
 
     def __init__(self,spark,sc,glueContext):
@@ -53,6 +55,7 @@ class TransformBase:
         self.sns_trigger = False
         self.athena_trigger = False
         self.list_of_files = None
+        self.file_path = None
         self.account_number = self.aws_instance.get_glue_env_var('ACCOUNT_NUMBER')
         self.environment = self.aws_instance.get_glue_env_var('ENVIRONMENT')
         self.full_configs = self.aws_instance.reading_json_from_zip()
@@ -62,6 +65,7 @@ class TransformBase:
         self.semantic_bucket_name = f"eu-central1-{self.environment}-uk-snowfall-semantic-{self.account_number}"
         self.athena_output_path = f"eu-central1-{self.environment}-uk-snowfall-athena-{self.account_number}/"
         self.datasets = self.aws_instance.get_workflow_properties('DATASET')
+        self.group = self.aws_instance.get_workflow_properties('GROUP')
 
 
 
@@ -208,7 +212,7 @@ class TransformBase:
         return df_passed
         
 
-    def error_handling_after_dq(self, df, bucket_name, s3_path_prefix, output_file_type):
+    def error_handling_after_dq(self, df, bucket_name, s3_path_prefix, output_file_type,partition_column_drop = None):
         """
         Handles the records that have failed the data quality check. It exports the files
         to a specific S3 file path and changes the sns_trigger boolean to True so 
@@ -221,18 +225,27 @@ class TransformBase:
             bucket_name (str): The name of the S3 bucket.
             s3_path_prefix (str): The prefix of the S3 file path.
             output_file_type (str): The type of the output file. It can be 'json' or 'csv'.
+            partition_column_drop (list) : List of extra columns needed to be dropped if processed pipeline is being triggered
 
         Raises:
             Exception: An error occurred during the process.
         """
 
         self.logger.info('Exporting the records that have failed data quality checks...')
-        
-        columns_to_drop = ['dataqualityrulespass','dataqualityrulesfail','dataqualityrulesskip','dataqualityevaluationresult']
-        df = df.drop(*columns_to_drop)
 
         workflow_run_id = self.aws_instance.get_glue_env_var('WORKFLOW_RUN_ID')
         error_path = f"s3://{bucket_name}/error/{s3_path_prefix}/{workflow_run_id}/dq_fail_rows/"
+        
+        columns_to_drop = ['dataqualityrulespass','dataqualityrulesfail','dataqualityrulesskip','dataqualityevaluationresult']
+
+        if self.group != 'preparation':
+            columns_to_drop = columns_to_drop + ['cdc_timestamp','cdc_glue_workflow_id','unique_guid']
+            error_path = f"s3://{bucket_name}/error/{s3_path_prefix}/{workflow_run_id}/transformation_fail/"
+
+        if partition_column_drop:
+            columns_to_drop = columns_to_drop + partition_column_drop
+
+        df = df.drop(*columns_to_drop)
 
         self.logger.info(f'Exporting data to {error_path}')
 
@@ -546,13 +559,13 @@ class TransformBase:
 
         return df
 
-    def drop_columns_for_processed(self,df,*columns_to_drop):
+    def drop_columns_for_processed(self, df, columns_to_drop=None):
         """
         Drop specified columns from a PySpark DataFrame.
 
         Parameters:
             df (DataFrame): The PySpark DataFrame.
-            *columns_to_drop (str): Optional column names to drop.
+            columns_to_drop (list of str): Optional list of column names to drop.
 
         Returns:
             DataFrame: The DataFrame with specified columns dropped.
@@ -560,18 +573,18 @@ class TransformBase:
         self.logger.info("Dropping the DQ columns")
         # List of fixed columns to be dropped
         fixed_columns_to_drop = [
-            'dataqualityrulespass', 
-            'dataqualityrulesfail', 
-            'dataqualityrulesskip', 
-            'dataqualityevaluationresult', 
-            'cdc_timestamp', 
+            'dataqualityrulespass',
+            'dataqualityrulesfail',
+            'dataqualityrulesskip',
+            'dataqualityevaluationresult',
+            'cdc_timestamp',
             'cdc_glue_workflow_id',
             'unique_guid'
         ]
 
         if columns_to_drop:
             # Concatenate the fixed columns with the optional columns
-            all_columns_to_drop = fixed_columns_to_drop + list(columns_to_drop)
+            all_columns_to_drop = fixed_columns_to_drop + columns_to_drop
         else:
             # If no extra columns are passed, only drop fixed columns
             all_columns_to_drop = fixed_columns_to_drop
@@ -655,12 +668,13 @@ class TransformBase:
         return df
 
     @transformation_timer
-    def filter_quality_result(self, df):
+    def filter_quality_result(self, df, partition_column_drop = None):
         """
         Filter DataFrame records based on the DataQualityEvaluationResult.
 
         Args:
             df (DataFrame): The input Spark DataFrame.
+            partition_column_drop (list) : List of extra partition columns that need dropping before exporting
 
         Returns:
             DataFrame: The filtered DataFrame containing only passed records.
@@ -671,10 +685,13 @@ class TransformBase:
         df_failed = df.filter(df["DataQualityEvaluationResult"] == "Failed")
 
         if not df_failed.isEmpty():
-            # TODO: Add your logic here for handling failed records
             self.logger.info('Handling failed records...')
-            # For example, you can print the failed records
-            print(df_failed.count())
+            # Reading data from preparation bucket
+            prep_df = self.spark.read.format("delta").load(f"s3://{self.preparation_bucket_name}/{self.file_path}/")
+            error_records_df = prep_df.join(df_failed.select("cdc_timestamp", "unique_guid"), on=["cdc_timestamp", "unique_guid"], how="inner")
+            dropped_error_df = self.drop_columns_for_processed(error_records_df,partition_column_drop)
+            self.error_handling_after_dq(dropped_error_df,self.preparation_bucket_name,self.file_path,'json',partition_column_drop)
+
 
         # Filter DataFrame for passed records and return it
         df_passed = df.filter(df["DataQualityEvaluationResult"] == "Passed")
