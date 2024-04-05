@@ -559,42 +559,7 @@ class TransformBase:
 
         return df
 
-    def drop_columns_for_processed(self, df, columns_to_drop=None):
-        """
-        Drop specified columns from a PySpark DataFrame.
 
-        Parameters:
-            df (DataFrame): The PySpark DataFrame.
-            columns_to_drop (list of str): Optional list of column names to drop.
-
-        Returns:
-            DataFrame: The DataFrame with specified columns dropped.
-        """
-        self.logger.info("Dropping the DQ columns")
-        # List of fixed columns to be dropped
-        fixed_columns_to_drop = [
-            'dataqualityrulespass',
-            'dataqualityrulesfail',
-            'dataqualityrulesskip',
-            'dataqualityevaluationresult',
-            'cdc_timestamp',
-            'cdc_glue_workflow_id',
-            'unique_guid'
-        ]
-
-        if columns_to_drop:
-            # Concatenate the fixed columns with the optional columns
-            all_columns_to_drop = fixed_columns_to_drop + columns_to_drop
-        else:
-            # If no extra columns are passed, only drop fixed columns
-            all_columns_to_drop = fixed_columns_to_drop
-
-        # Drop specified columns
-        modified_df = df.drop(*all_columns_to_drop)
-
-        return modified_df
-    
-    
     @transformation_timer
     def split_json_column(self,df, columns):
         """
@@ -689,8 +654,7 @@ class TransformBase:
             # Reading data from preparation bucket
             prep_df = self.spark.read.format("delta").load(f"s3://{self.preparation_bucket_name}/{self.file_path}/")
             error_records_df = prep_df.join(df_failed.select("cdc_timestamp", "unique_guid"), on=["cdc_timestamp", "unique_guid"], how="inner")
-            dropped_error_df = self.drop_columns_for_processed(error_records_df,partition_column_drop)
-            self.error_handling_after_dq(dropped_error_df,self.preparation_bucket_name,self.file_path,'json',partition_column_drop)
+            self.error_handling_after_dq(error_records_df,self.preparation_bucket_name,self.file_path,'json',partition_column_drop)
 
 
         # Filter DataFrame for passed records and return it

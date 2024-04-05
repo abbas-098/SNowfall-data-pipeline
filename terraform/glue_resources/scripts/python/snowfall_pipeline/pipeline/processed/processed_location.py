@@ -277,6 +277,11 @@ class ProcessedLocation(TransformBase):
             merge_columns = ['restaurant_id','restaurant_name','created_date','created_time']
             self.merge_to_delta_table(df,save_output_path,merge_columns)
 
+        # If error detected from DQ failing then will raise
+        if self.sns_trigger:
+            message = "Records in the error folder that have failed transformation"
+            self.aws_instance.send_sns_message(message)
+
         
         self.logger.info(f'Finished running the {self.__class__.__name__} pipeline!')
 

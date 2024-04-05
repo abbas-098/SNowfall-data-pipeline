@@ -52,7 +52,7 @@ class ProcessedIncidentDaily(TransformBase):
         df = self.join_location_table(df,'location_display_value')
 
         # Step 5: Filters passed records
-        df = self.filter_quality_result(df)
+        df = self.filter_quality_result(df,partition_column_drop=['created_year','created_month'])
 
         # Step 6: Gets unique records
         df = self.get_unique_records_sql(df)
@@ -556,6 +556,12 @@ class ProcessedIncidentDaily(TransformBase):
                 # Merge data to the Delta table
                 merge_columns = ['incident_number','created_date','created_time','state','created_year','created_month']
                 self.merge_to_delta_table(df,save_output_path,merge_columns)
+
+
+            # If error detected from DQ failing then will raise
+            if self.sns_trigger:
+                message = "Records in the error folder that have failed transformation"
+                self.aws_instance.send_sns_message(message)
 
             
             self.logger.info(f'Finished running the {self.__class__.__name__} pipeline!')
