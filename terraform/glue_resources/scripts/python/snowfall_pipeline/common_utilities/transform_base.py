@@ -550,12 +550,16 @@ class TransformBase:
         """
         self.logger.info('Changing column names and data type')
         # Rename columns and update data types
-        for old_col_name, (new_col_name, new_col_type) in column_mapping.items():
-            df = df.withColumnRenamed(old_col_name, new_col_name)
-            if new_col_type == 'time':
-                df = df.withColumn(new_col_name, F.date_format(df[new_col_name], 'HH:mm:ss'))
-            else:
-                df = df.withColumn(new_col_name, df[new_col_name].cast(new_col_type))
+        # Construct a list of column expressions for renaming and type casting
+        expressions = [
+            F.col(old_col_name).alias(new_col_name).cast(new_col_type)
+            if new_col_type != 'time'
+            else F.date_format(F.col(old_col_name), 'HH:mm:ss').alias(new_col_name)
+            for old_col_name, (new_col_name, new_col_type) in column_mapping.items()
+        ]
+
+        # Apply the expressions to the DataFrame
+        df = df.select(*expressions)
 
         return df
 
