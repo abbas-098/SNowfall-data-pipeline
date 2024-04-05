@@ -132,7 +132,7 @@ class SemanticDailyIncidents(TransformBase):
 
         df.createOrReplaceTempView("service_now_incident_daily")
 
-        result_df = self.spark(sql_query)
+        result_df = self.spark.sql(sql_query)
 
         column_mapping = {
 
