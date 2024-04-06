@@ -237,8 +237,8 @@
     },
 
     {
-        "flowName": "UK-SNowFall-ServiceNow-ProblemRequest",
-        "description": "Ingestion of the Problem Request from Service Now",
+        "flowName": "UK-SNowFall-ServiceNow-ProblemRecord",
+        "description": "Ingestion of the Problem Record from Service Now",
         "triggerConfig": {
             "triggerType": "Scheduled",
             "triggerProperties": {

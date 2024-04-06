@@ -17,8 +17,8 @@
             "destinationPath": "service_now/location"
         },
         {
-            "fileName": "service_now/UK-SNowFall-ServiceNow-ProblemRequest",
-            "destinationPath": "service_now/problem_request"
+            "fileName": "service_now/UK-SNowFall-ServiceNow-ProblemRecord",
+            "destinationPath": "service_now/problem_record"
         },
         {
             "fileName": "service_now/UK-SNowFall-ServiceNow-ServiceRequest",
