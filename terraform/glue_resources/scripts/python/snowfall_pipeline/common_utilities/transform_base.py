@@ -596,7 +596,7 @@ class TransformBase:
     
     
     @transformation_timer
-    def split_datetime_column(self,df, input_columns):
+    def split_datetime_column(self, df, input_columns):
         """
         Transform the DataFrame by converting timestamp columns, splitting them, and updating data quality metrics.
 
@@ -621,7 +621,7 @@ class TransformBase:
             df = df.withColumn(
                 f"{col_name}_dt", F.col(f"{col_name}_checked").cast("date")
             ).withColumn(
-                f"{col_name}_timestamp", F.expr(f"substring({col_name}_checked, 12, 8)")
+                f"{col_name}_timestamp", F.col(f"{col_name}_checked")
             )
 
             df = df.withColumn(
@@ -635,6 +635,7 @@ class TransformBase:
             df = df.drop(f"{col_name}_checked")
 
         return df
+
 
     @transformation_timer
     def filter_quality_result(self, df, partition_column_drop = None):
@@ -740,3 +741,39 @@ class TransformBase:
         )
 
         return joined_df
+    
+    
+    def drop_columns_for_processed(self,df,*columns_to_drop):
+        """
+        Drop specified columns from a PySpark DataFrame.
+
+        Parameters:
+            df (DataFrame): The PySpark DataFrame.
+            *columns_to_drop (str): Optional column names to drop.
+
+        Returns:
+            DataFrame: The DataFrame with specified columns dropped.
+        """
+        self.logger.info("Dropping the DQ columns")
+        # List of fixed columns to be dropped
+        fixed_columns_to_drop = [
+            'dataqualityrulespass', 
+            'dataqualityrulesfail', 
+            'dataqualityrulesskip', 
+            'dataqualityevaluationresult', 
+            'cdc_timestamp', 
+            'cdc_glue_workflow_id',
+            'unique_guid'
+        ]
+
+        if columns_to_drop:
+            # Concatenate the fixed columns with the optional columns
+            all_columns_to_drop = fixed_columns_to_drop + list(columns_to_drop)
+        else:
+            # If no extra columns are passed, only drop fixed columns
+            all_columns_to_drop = fixed_columns_to_drop
+
+        # Drop specified columns
+        modified_df = df.drop(*all_columns_to_drop)
+
+        return modified_df
