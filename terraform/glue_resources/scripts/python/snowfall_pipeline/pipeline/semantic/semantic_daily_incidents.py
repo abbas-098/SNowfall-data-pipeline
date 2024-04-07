@@ -114,7 +114,7 @@ class SemanticDailyIncidents(TransformBase):
                 service_offering,
                 u_vendor as service_vendor,
                 CAST('{self.formatted_reporting_date}' AS DATE) as reporting_date,
-                CAST(sys_updated_timestamp AS TIMESTAMP) AS last_updated_at_timestamp,
+                sys_updated_timestamp AS last_updated_at_timestamp,
                 rank() over (partition by incident_number order by cast(sys_updated_timestamp as timestamp) desc) as rank
             FROM service_now_incident_daily
             WHERE sys_updated_date < '{self.formatted_reporting_date}'
