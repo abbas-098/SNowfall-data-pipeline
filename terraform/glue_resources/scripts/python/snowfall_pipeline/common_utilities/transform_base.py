@@ -238,7 +238,7 @@ class TransformBase:
         
         columns_to_drop = ['dataqualityrulespass','dataqualityrulesfail','dataqualityrulesskip','dataqualityevaluationresult']
 
-        if self.group != 'preparation':
+        if not 'Preparation' in self.__class__.__name__:
             columns_to_drop = columns_to_drop + ['cdc_timestamp','cdc_glue_workflow_id','unique_guid']
             error_path = f"s3://{bucket_name}/error/{s3_path_prefix}/{workflow_run_id}/transformation_fail/"
 
