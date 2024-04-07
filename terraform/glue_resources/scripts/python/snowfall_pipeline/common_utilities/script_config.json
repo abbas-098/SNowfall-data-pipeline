@@ -172,7 +172,13 @@
         "process_timestamp": [
             "sys_updated_on",
             "sys_created_on",
-            "opened_at"
+            "opened_at",
+            "closed_at"
+        ],
+        "add_seconds": [
+            "business_duration",
+            "calendar_duration",
+            "time_worked"
         ],
         "redact_pii_columns": [
             "work_notes",
