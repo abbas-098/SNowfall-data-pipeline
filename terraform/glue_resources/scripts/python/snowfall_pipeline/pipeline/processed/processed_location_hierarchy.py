@@ -36,7 +36,7 @@ class ProcessedLocationHierarchy(TransformBase):
 
         column_mapping = {
 
-            'store_number': ('store_sumber', 'integer'),
+            'store_number': ('store_number', 'integer'),
             'store_name': ('store_name', 'string'),
             'latitude': ('latitude', 'double'),
             'longitude': ('longitude', 'double'),
@@ -149,7 +149,7 @@ class ProcessedLocationHierarchy(TransformBase):
         else:
 
             # Merge data to the Delta table
-            merge_columns = ['Store_Number','Store_Name']
+            merge_columns = ['store_number','store_name']
             self.merge_to_delta_table(df,save_output_path,merge_columns)
 
         

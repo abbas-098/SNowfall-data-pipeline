@@ -554,7 +554,7 @@ class ProcessedIncidentDaily(TransformBase):
             else:
 
                 # Merge data to the Delta table
-                merge_columns = ['incident_number','created_date','created_time','state','created_year','created_month']
+                merge_columns = ['incident_number','sys_created_timestamp','state','created_year','created_month']
                 self.merge_to_delta_table(df,save_output_path,merge_columns)
 
 

@@ -49,9 +49,9 @@ class SemanticDailyIncidents(TransformBase):
                 ELSE incident_state 
             END as eod_incident_status,
             opened_date as opened_at_date,
-            concat(cast(opened_date as string), ' ', opened_time) as opened_at_timestamp,
+            CAST(opened_timestamp AS TIMESTAMP) as opened_at_timestamp,
             resolved_at_date as resolved_at_date,
-            concat(cast(resolved_at_date as string), ' ', resolved_at_time) as resolved_at_timestamp,
+            CAST(resolved_at_timestamp AS TIMESTAMP) as resolved_at_timestamp,
             priority as incident_priority_local,
             priority as incident_priority_global,
             category as incident_category,
@@ -103,9 +103,9 @@ class SemanticDailyIncidents(TransformBase):
                     ELSE state 
                 END as eod_incident_status,
                 opened_date as opened_at_date,
-                concat(cast(opened_date as string), ' ', opened_time) as opened_at_timestamp,
+                CAST(opened_timestamp AS TIMESTAMP) as opened_at_timestamp,
                 resolved_at_date as resolved_at_date,
-                concat(cast(resolved_at_date as string), ' ', resolved_at_time) as resolved_at_timestamp,
+                CAST(resolved_at_timestamp AS TIMESTAMP) as resolved_at_timestamp,
                 priority as incident_priority_local,
                 priority as incident_priority_global,
                 category as incident_category,
@@ -114,8 +114,8 @@ class SemanticDailyIncidents(TransformBase):
                 service_offering,
                 u_vendor as service_vendor,
                 '{self.formatted_reporting_date}' as reporting_date,
-                concat(cast(updated_date as string), ' ', updated_time) as last_updated_at_timestamp,
-                rank() over (partition by incident_number order by cast(concat(cast(updated_date as string), ' ', updated_time) as timestamp) desc) as rank
+                CAST(sys_updated_timestamp AS TIMESTAMP) AS last_updated_at_timestamp,
+                rank() over (partition by incident_number order by cast(sys_updated_timestamp as timestamp) desc) as rank
             FROM service_now_incident_daily
             WHERE updated_date < '{self.formatted_reporting_date}'
             AND incident_number NOT IN (
@@ -136,10 +136,10 @@ class SemanticDailyIncidents(TransformBase):
 
         column_mapping = {
 
-            'opened_at_timestamp': ('opened_at_timestamp', 'time'),
-            'resolved_at_timestamp': ('resolved_at_timestamp', 'time'),
+            'opened_at_timestamp': ('opened_at_timestamp', 'timestamp'),
+            'resolved_at_timestamp': ('resolved_at_timestamp', 'timestamp'),
             'reporting_date': ('reporting_date', 'date'),
-            'last_updated_at_timestamp':('last_updated_at_timestamp','time')
+            'last_updated_at_timestamp':('last_updated_at_timestamp','timestamp')
         }
         
         result_df = self.change_column_names_and_schema(result_df,column_mapping)
