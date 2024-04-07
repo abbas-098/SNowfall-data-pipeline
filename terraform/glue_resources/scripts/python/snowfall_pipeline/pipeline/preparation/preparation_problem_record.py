@@ -4,14 +4,14 @@ from delta.tables import DeltaTable
 
 
 
-class PreparationProblemRequest(TransformBase):
+class PreparationProblemRecord(TransformBase):
 
     def __init__(self, spark, sc, glueContext):
         super().__init__(spark, sc, glueContext)
         self.spark.conf.set("spark.sql.shuffle.partitions", "5") 
         self.pipeline_config = self.full_configs[self.datasets]
         self.dq_rule = dq_rules.get(self.datasets)
-        self.file_path = "service_now/problem_request"
+        self.file_path = "service_now/problem_record"
         self.list_of_files = self.aws_instance.get_files_in_s3_path(f"{self.raw_bucket_name}/{self.file_path}/")
 
 
