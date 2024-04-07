@@ -41,7 +41,7 @@ dq_rules = {
         IsComplete "sys_created_on"
     ]""",
 
-    "problem_change": """Rules = [
+    "problem_record": """Rules = [
         ColumnCount = 92,
         RowCount > 0,
         IsComplete "number",

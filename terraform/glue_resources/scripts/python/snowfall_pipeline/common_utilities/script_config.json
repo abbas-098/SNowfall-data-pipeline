@@ -156,7 +156,7 @@
         "appflow_name":"UK-SNowFall-ServiceNow-ChangeRequest"
 
     },
-    "problem_change":{
+    "problem_record":{
         "transform_json":[
             "opened_by",
             "sys_domain",
