@@ -235,9 +235,9 @@ class ProcessedLocation(TransformBase):
             'u_ops_manager_display_value': ('u_ops_manager', 'string'), 
             'u_ops_manager_link': ('u_ops_manager_sys_user', 'string'),      
             'sys_updated_on_dt': ('sys_updated_date', 'date'),  
-            'sys_updated_on_timestamp': ('sys_updated_timestamp', 'timestamp'), 
+            'sys_updated_on_timestamp': ('sys_updated_timestamp', 'string'), 
             'sys_created_on_dt': ('sys_created_date', 'date'), 
-            'sys_created_on_timestamp': ('sys_created_timestamp', 'timestamp'), 
+            'sys_created_on_timestamp': ('sys_created_timestamp', 'string'), 
             'full_name_restaurant_id': ('restaurant_id', 'integer'),
             'full_name_restaurant_name': ('restaurant_name', 'string')
         }

@@ -621,7 +621,7 @@ class TransformBase:
             df = df.withColumn(
                 f"{col_name}_dt", F.col(f"{col_name}_checked").cast("date")
             ).withColumn(
-                f"{col_name}_timestamp", F.col(f"{col_name}_checked")
+                f"{col_name}_timestamp", F.date_format(F.col(f"{col_name}_checked"), "yyyy-MM-dd HH:mm:ss")
             )
 
             df = df.withColumn(

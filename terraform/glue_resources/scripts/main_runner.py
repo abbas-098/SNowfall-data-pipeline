@@ -1,15 +1,14 @@
 import importlib
 import sys
-from awsglue.transforms import *
-from awsglue.utils import getResolvedOptions
 from pyspark.context import SparkContext
 from awsglue.context import GlueContext
 from awsglue.job import Job
+from pyspark.sql import SparkSession
 from snowfall_pipeline.common_utilities.snowfall_logger import SnowfallLogger
 from snowfall_pipeline.common_utilities.aws_utilities import AwsUtilities
 
 logger = SnowfallLogger.get_logger()
-  
+
 class RunManager:
 
     def __init__(self, spark_context):
@@ -55,7 +54,14 @@ def main():
     aws_instance = AwsUtilities()
     group = aws_instance.get_workflow_properties('GROUP')
     dataset = aws_instance.get_workflow_properties('DATASET')
-    sc = SparkContext.getOrCreate()
+    
+    # Set timezone configuration before creating the SparkSession
+    spark = SparkSession.builder \
+        .config("spark.sql.session.timeZone", "Europe/London") \
+        .appName("snowfall_runner") \
+        .getOrCreate()
+    
+    sc = spark.sparkContext
     
     try:
         run_manager = RunManager(sc)
