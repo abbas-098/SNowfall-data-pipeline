@@ -49,9 +49,9 @@ class SemanticDailyIncidents(TransformBase):
                 ELSE incident_state 
             END as eod_incident_status,
             opened_date as opened_at_date,
-            CAST(opened_timestamp AS TIMESTAMP) as opened_at_timestamp,
+            opened_timestamp as opened_at_timestamp,
             resolved_at_date as resolved_at_date,
-            CAST(resolved_at_timestamp AS TIMESTAMP) as resolved_at_timestamp,
+            resolved_at_timestamp,
             priority as incident_priority_local,
             priority as incident_priority_global,
             category as incident_category,
@@ -59,10 +59,10 @@ class SemanticDailyIncidents(TransformBase):
             assignment_group,
             service_offering,
             u_vendor as service_vendor,
-            updated_date as reporting_date,
-            updated_date as last_updated_at_timestamp
+            sys_updated_date as reporting_date,
+            sys_updated_date as last_updated_at_timestamp
         FROM service_now_incident_daily
-        WHERE updated_date = '{self.formatted_reporting_date}'
+        WHERE sys_updated_date = '{self.formatted_reporting_date}'
 
         UNION
 
@@ -103,9 +103,9 @@ class SemanticDailyIncidents(TransformBase):
                     ELSE state 
                 END as eod_incident_status,
                 opened_date as opened_at_date,
-                CAST(opened_timestamp AS TIMESTAMP) as opened_at_timestamp,
+                opened_timestamp as opened_at_timestamp,
                 resolved_at_date as resolved_at_date,
-                CAST(resolved_at_timestamp AS TIMESTAMP) as resolved_at_timestamp,
+                resolved_at_timestamp,
                 priority as incident_priority_local,
                 priority as incident_priority_global,
                 category as incident_category,
@@ -113,15 +113,15 @@ class SemanticDailyIncidents(TransformBase):
                 assignment_group,
                 service_offering,
                 u_vendor as service_vendor,
-                '{self.formatted_reporting_date}' as reporting_date,
+                CAST('{self.formatted_reporting_date}' AS DATE) as reporting_date,
                 CAST(sys_updated_timestamp AS TIMESTAMP) AS last_updated_at_timestamp,
                 rank() over (partition by incident_number order by cast(sys_updated_timestamp as timestamp) desc) as rank
             FROM service_now_incident_daily
-            WHERE updated_date < '{self.formatted_reporting_date}'
+            WHERE sys_updated_date < '{self.formatted_reporting_date}'
             AND incident_number NOT IN (
                     SELECT distinct incident_number 
                     FROM service_now_incident_daily
-                    WHERE updated_date <= '{self.formatted_reporting_date}'
+                    WHERE sys_updated_date <= '{self.formatted_reporting_date}'
                     AND incident_state IN ('Closed', 'Cancelled', 'Duplicate')
             )
             AND incident_state NOT IN ('Closed', 'Cancelled', 'Duplicate')
@@ -133,16 +133,6 @@ class SemanticDailyIncidents(TransformBase):
         df.createOrReplaceTempView("service_now_incident_daily")
 
         result_df = self.spark.sql(sql_query)
-
-        column_mapping = {
-
-            'opened_at_timestamp': ('opened_at_timestamp', 'timestamp'),
-            'resolved_at_timestamp': ('resolved_at_timestamp', 'timestamp'),
-            'reporting_date': ('reporting_date', 'date'),
-            'last_updated_at_timestamp':('last_updated_at_timestamp','timestamp')
-        }
-        
-        result_df = self.change_column_names_and_schema(result_df,column_mapping)
         
         return result_df
 
