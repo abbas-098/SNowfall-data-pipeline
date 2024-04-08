@@ -130,7 +130,6 @@
         ],
         "add_seconds": [
             "business_duration",
-            "cab_date_time",
             "calendar_duration",
             "time_worked"
         ],
