@@ -56,192 +56,164 @@ class ProcessedSysUser(TransformBase):
         # Step 6: Drops unnecessary columns
         df = self.drop_columns_for_processed(df)
 
-        return df
 
         # Step 7: Selecting Columns that I want to take to processed layer
         df = df.select(
-        'full_name_restaurant_id',
-        'full_name_restaurant_name',
-        'full_name',
-        'u_type',
-        'street',
-        'city',
-        'country',
-        'latitude',
-        'longitude',
-        'sys_updated_on_dt',
-        'sys_updated_on_timestamp',
-        'sys_created_on_dt',
-        'sys_created_on_timestamp',
-        'coordinates_retrieved_on',
-        'lat_long_error',
-        'cmn_location_source',
-        'cmn_location_type',
-        'company',
-        'contact',
-        'u_monday_close',
-        'u_monday_open',
-        'u_tuesday_close',
-        'u_tuesday_open',
-        'u_wednesday_close',
-        'u_wednesday_open',
-        'u_thursday_close',
-        'u_thursday_open',
-        'u_friday_close',
-        'u_friday_open',
-        'u_saturday_close',
-        'u_saturday_open',
-        'u_sunday_close',
-        'u_sunday_open',
-        'duplicate',
-        'stock_room',
-        'u_drive_thru',
-        'u_fit',
-        'u_nlg',
-        'u_otp',
-        'fax_phone',
-        'life_cycle_stage',
-        'life_cycle_stage_status',
-        'managed_by_group',
-        'parent',
-        'phone',
-        'phone_territory',
-        'primary_location',
-        'state',
-        'sys_created_by',
-        'sys_id',
-        'sys_mod_count',
-        'sys_tags',
-        'sys_updated_by',
-        'time_zone',
-        'u_adsl_line',
-        'u_adsl_line2',
-        'u_comms_line_contract_id',
-        'u_email',
-        'u_go_live',
-        'u_mcduk_mccafe',
-        'u_mcduk_store_number',
-        'u_ownership',
-        'u_projects',
-        'u_restaurant_build_url',
-        'u_restaurant_close_date',
-        'u_rlg1',
-        'u_supporting_role',
-        'u_type_of_phone',
-        'zip',
-        'u_franchisee_regional_manager_display_value',
-        'u_franchisee_regional_manager_link',
-        'u_regional_manager_display_value',
-        'u_regional_manager_link',
-        'u_fanchisee_display_value',
-        'u_fanchisee_link',
-        'u_franchisees_chief_ops_manager_display_value',
-        'u_franchisees_chief_ops_manager_link',
-        'u_franchisees_ops_manager_display_value',
-        'u_franchisees_ops_manager_link',
-        'u_director_display_value',
-        'u_director_link',
-        'u_chief_ops_officer_display_value',
-        'u_chief_ops_officer_link',
-        'u_franchisees_consultant_display_value',
-        'u_franchisees_consultant_link',
-        'u_franchisees_director_display_value',
-        'u_franchisees_director_link',
-        'u_ops_manager_display_value',
-        'u_ops_manager_link'
+            'active',
+            'avatar',
+            'calendar_integration',
+            'city',
+            'country',
+            'date_format',
+            'email',
+            'employee_number',
+            'enable_multifactor_authn',
+            'failed_attempts',
+            'first_name',
+            'gender',
+            'home_phone',
+            'internal_integration_user',
+            'introduction',
+            'last_login',
+            'last_name',
+            'manager',
+            'middle_name',
+            'mobile_phone',
+            'name',
+            'notification',
+            'phone',
+            'photo',
+            'preferred_language',
+            'schedule',
+            'source',
+            'sso_source',
+            'state',
+            'street',
+            'sys_class_name',
+            'sys_created_by',
+            'sys_domain_path',
+            'sys_id',
+            'sys_mod_count',
+            'sys_tags',
+            'sys_updated_by',
+            'time_format',
+            'time_zone',
+            'title',
+            'u_delivery_kitchen',
+            'u_grade',
+            'u_mytech_va_store',
+            'u_office',
+            'u_otp',
+            'u_store_no',
+            'u_techseed',
+            'u_user_account_control',
+            'u_user_type',
+            'user_name',
+            'vip',
+            'web_service_access_only',
+            'zip',
+            'created_year',
+            'created_month',
+            'building_display_value',
+            'building_link',
+            'sys_domain_display_value',
+            'sys_domain_link',
+            'cost_center_display_value',
+            'cost_center_link',
+            'company_display_value',
+            'company_link',
+            'department_display_value',
+            'department_link',
+            'location_display_value',
+            'location_link',
+            'last_login_time_dt',
+            'last_login_time_timestamp',
+            'sys_updated_on_dt',
+            'sys_updated_on_timestamp',
+            'sys_created_on_dt',
+            'sys_created_on_timestamp',
+            'restaurant_full_name',
+            'restaurant_name',
+            'restaurant_id'
         )
 
         column_mapping = {
-
-            'city': ('city', 'string'),
-            'cmn_location_source': ('cmn_location_source', 'string'),
-            'cmn_location_type': ('cmn_location_type', 'string'),
-            'company': ('company', 'string'),
-            'contact': ('contact', 'string'),
-            'coordinates_retrieved_on': ('coordinates_retrieved_on', 'string'),
-            'country': ('country', 'string'),
-            'duplicate': ('duplicate_flag', 'boolean'),
-            'fax_phone': ('fax_phone', 'string'),
-            'full_name': ('restaurant_full_name', 'string'),
-            'lat_long_error': ('lat_long_error', 'string'),
-            'latitude': ('latitude', 'double'),
-            'life_cycle_stage': ('life_cycle_stage', 'string'),
-            'life_cycle_stage_status': ('life_cycle_stage_status', 'string'),
-            'longitude': ('longitude', 'double'),
-            'managed_by_group': ('managed_by_group', 'string'),
-            'parent': ('parent', 'string'),
-            'phone': ('phone', 'string'),
-            'phone_territory': ('phone_territory', 'string'),
-            'primary_location': ('primary_location', 'string'),
-            'state': ('state', 'string'),
-            'stock_room': ('stock_room_flag', 'boolean'),
-            'street': ('street', 'string'),
-            'sys_created_by': ('sys_created_by', 'string'),
+            'user_name': ('user_name', 'string'),
+            'employee_number': ('employee_number', 'string'),
             'sys_id': ('sys_id', 'string'),
-            'sys_mod_count': ('sys_mod_count', 'string'),
+            'last_login_time_dt': ('last_login_time_date', 'date'),
+            'last_login_time_timestamp': ('last_login_timestamp', 'string'),
+            'sys_updated_on_dt': ('sys_updated_date', 'date'),
+            'sys_updated_on_timestamp': ('sys_updated_timestamp', 'string'),
+            'sys_created_on_dt': ('sys_created_date', 'date'),
+            'sys_created_on_timestamp': ('sys_created_timestamp', 'string'),
+            'restaurant_full_name': ('restaurant_full_name', 'string'),
+            'restaurant_name': ('restaurant_name', 'string'),
+            'restaurant_id': ('restaurant_id', 'integer'),
+            'active': ('active_flag', 'boolean'),
+            'avatar': ('avatar', 'string'),
+            'calendar_integration': ('calendar_integration', 'string'),
+            'city': ('city', 'string'),
+            'country': ('country', 'string'),
+            'date_format': ('date_format', 'string'),
+            'email': ('email', 'string'),
+            'enable_multifactor_authn': ('enable_multifactor_authn', 'boolean'),
+            'failed_attempts': ('failed_attempts', 'integer'),
+            'first_name': ('first_name', 'string'),
+            'gender': ('gender', 'string'),
+            'home_phone': ('home_phone', 'string'),
+            'internal_integration_user': ('internal_integration_user_flag', 'boolean'),
+            'introduction': ('introduction', 'string'),
+            'last_login': ('last_login', 'string'),
+            'last_name': ('last_name', 'string'),
+            'manager': ('manager', 'string'),
+            'middle_name': ('middle_name', 'string'),
+            'mobile_phone': ('mobile_phone', 'string'),
+            'name': ('name', 'string'),
+            'notification': ('notification', 'string'),
+            'phone': ('phone', 'string'),
+            'photo': ('photo', 'string'),
+            'preferred_language': ('preferred_language', 'string'),
+            'schedule': ('schedule', 'string'),
+            'source': ('source', 'string'),
+            'sso_source': ('sso_source', 'string'),
+            'state': ('state', 'string'),
+            'street': ('street', 'string'),
+            'sys_class_name': ('sys_class_name', 'string'),
+            'sys_created_by': ('sys_created_by', 'string'),
+            'sys_domain_path': ('sys_domain_path', 'string'),
+            'sys_mod_count': ('sys_mod_count', 'integer'),
             'sys_tags': ('sys_tags', 'string'),
             'sys_updated_by': ('sys_updated_by', 'string'),
+            'time_format': ('time_format', 'string'),
             'time_zone': ('time_zone', 'string'),
-            'u_adsl_line': ('u_adsl_line', 'string'),
-            'u_adsl_line2': ('u_adsl_line2', 'string'),
-            'u_comms_line_contract_id': ('u_comms_line_contract_id', 'string'),
-            'u_drive_thru': ('u_drive_thru_flag', 'boolean'),
-            'u_email': ('u_email', 'string'),
-            'u_fit': ('u_fit_flag', 'boolean'),
-            'u_friday_close': ('u_friday_close', 'time'),
-            'u_friday_open': ('u_friday_open', 'time'),
-            'u_go_live': ('u_go_live', 'string'),
-            'u_mcduk_mccafe': ('u_mcduk_mccafe', 'string'),
-            'u_mcduk_store_number': ('u_mcduk_store_number', 'string'),
-            'u_monday_close': ('u_monday_close', 'time'),
-            'u_monday_open': ('u_monday_open', 'time'),
-            'u_nlg': ('u_nlg_flag', 'boolean'),
-            'u_otp': ('u_otp_flag', 'boolean'),
-            'u_ownership': ('restaurant_ownership_type', 'string'),
-            'u_projects': ('u_projects', 'string'),
-            'u_restaurant_build_url': ('u_restaurant_build_url', 'string'),
-            'u_restaurant_close_date': ('u_restaurant_close_date', 'string'),
-            'u_rlg1': ('u_rlg1', 'string'),
-            'u_saturday_close': ('u_saturday_close', 'time'),
-            'u_saturday_open': ('u_saturday_open', 'time'),
-            'u_sunday_close': ('u_sunday_close', 'time'),
-            'u_sunday_open': ('u_sunday_open', 'time'),
-            'u_supporting_role': ('u_supporting_role', 'string'),
-            'u_thursday_close': ('u_thursday_close', 'time'),
-            'u_thursday_open': ('u_thursday_open', 'time'),
-            'u_tuesday_close': ('u_tuesday_close', 'time'),
-            'u_tuesday_open': ('u_tuesday_open', 'time'),
-            'u_type': ('location_type', 'string'),
-            'u_type_of_phone': ('u_type_of_phone', 'string'),
-            'u_wednesday_close': ('u_wednesday_close', 'time'),
-            'u_wednesday_open': ('u_wednesday_open', 'time'),
+            'title': ('title', 'string'),
+            'u_delivery_kitchen': ('u_delivery_kitchen', 'string'),
+            'u_grade': ('u_grade', 'string'),
+            'u_mytech_va_store': ('u_mytech_va_store', 'string'),
+            'u_office': ('u_office', 'string'),
+            'u_otp': ('u_otp', 'string'),
+            'u_store_no': ('store_number', 'integer'),
+            'u_techseed': ('u_techseed', 'string'),
+            'u_user_account_control': ('u_user_account_control', 'string'),
+            'u_user_type': ('u_user_type', 'string'),
+            'vip': ('vip', 'boolean'),
+            'web_service_access_only': ('web_service_access_only_flag', 'boolean'),
             'zip': ('zip', 'string'),
-            'u_franchisee_regional_manager_display_value': ('u_franchisee_regional_manager', 'string'),
-            'u_franchisee_regional_manager_link': ('u_franchisee_regional_manager_sys_user', 'string'),
-            'u_regional_manager_display_value': ('u_regional_manager', 'string'),
-            'u_regional_manager_link': ('u_regional_manager_sys_user', 'string'),
-            'u_fanchisee_display_value': ('u_fanchisee', 'string'),
-            'u_fanchisee_link': ('u_fanchisee_sys_user', 'string'),
-            'u_franchisees_chief_ops_manager_display_value': ('u_franchisees_chief_ops_manager', 'string'),
-            'u_franchisees_chief_ops_manager_link': ('u_franchisees_chief_ops_manager_sys_user', 'string'),
-            'u_franchisees_ops_manager_display_value': ('u_franchisees_ops_manager', 'string'),
-            'u_franchisees_ops_manager_link': ('u_franchisees_ops_manager_sys_user', 'string'),
-            'u_director_display_value': ('u_director', 'string'),
-            'u_director_link': ('u_director_sys_user', 'string'),
-            'u_chief_ops_officer_display_value': ('u_chief_ops_officer', 'string'),
-            'u_chief_ops_officer_link': ('u_chief_ops_officer_sys_user', 'string'),
-            'u_franchisees_consultant_display_value': ('u_franchisees_consultant', 'string'),
-            'u_franchisees_consultant_link': ('u_franchisees_consultant_sys_user', 'string'),
-            'u_franchisees_director_display_value': ('u_franchisees_director', 'string'),
-            'u_franchisees_director_link': ('u_franchisees_director_sys_user', 'string'),
-            'u_ops_manager_display_value': ('u_ops_manager', 'string'), 
-            'u_ops_manager_link': ('u_ops_manager_sys_user', 'string'),      
-            'sys_updated_on_dt': ('sys_updated_date', 'date'),  
-            'sys_updated_on_timestamp': ('sys_updated_timestamp', 'string'), 
-            'sys_created_on_dt': ('sys_created_date', 'date'), 
-            'sys_created_on_timestamp': ('sys_created_timestamp', 'string'), 
-            'full_name_restaurant_id': ('restaurant_id', 'integer'),
-            'full_name_restaurant_name': ('restaurant_name', 'string')
+            'created_year': ('created_year', 'integer'),
+            'created_month': ('created_month', 'integer'),
+            'building_display_value': ('building', 'string'),
+            'building_link': ('building_cmn_link', 'string'),
+            'sys_domain_display_value': ('sys_domain', 'string'),
+            'sys_domain_link': ('sys_domain_sys_user_group_link', 'string'),
+            'cost_center_display_value': ('cost_center', 'string'),
+            'cost_center_link': ('cost_center_link', 'string'),
+            'company_display_value': ('company', 'string'),
+            'company_link': ('company_link', 'string'),
+            'department_display_value': ('department', 'string'),
+            'department_link': ('department_link', 'string'),
+            'location_display_value': ('location', 'string'),
+            'location_link': ('location_cmn_link', 'string')
         }
 
         # 8. Changes column names and schema
@@ -268,7 +240,9 @@ class ProcessedSysUser(TransformBase):
         # Determine whether to create or merge to the Delta table
         if self.athena_trigger:
             # Create the Delta table
-            df.write.format("delta").mode("overwrite").save(save_output_path)
+            df.write.format("delta").mode("overwrite") \
+            .partitionBy('created_year','created_month') \
+            .save(save_output_path)
 
             # Execute Athena query to create the table
             self.aws_instance.create_athena_delta_table('processed', 'service_now_sys_user', save_output_path, self.athena_output_path)
@@ -276,7 +250,7 @@ class ProcessedSysUser(TransformBase):
         else:
 
             # Merge data to the Delta table
-            merge_columns = ['sys_id','sys_created_on','created_month','created_year'] #TODO
+            merge_columns = ['sys_id','sys_created_on','created_month','created_year']
             self.merge_to_delta_table(df,save_output_path,merge_columns)
 
         # If error detected from DQ failing then will raise
@@ -288,47 +262,6 @@ class ProcessedSysUser(TransformBase):
         self.logger.info(f'Finished running the {self.__class__.__name__} pipeline!')
 
 
-
-
-    @transformation_timer
-    def _transform_location_split(self,df, column_names):
-        """
-        Apply the split location string transformation to specified columns in the DataFrame.
-
-        Args:
-            df (DataFrame): The input Spark DataFrame.
-            column_names (list): List of column names to split location strings for.
-
-        Returns:
-            DataFrame: The DataFrame with split location columns.
-        """
-        self.logger.info('Running the transform_location_split function')
-        for column_name in column_names:
-            is_numeric = F.col(column_name).rlike("^[0-9]+$")
-            is_alphabetic = F.col(column_name).rlike("^[a-zA-Z\s]+$")
-
-            df = df.withColumn(
-                f"{column_name}_restaurant_id",
-                F.when(is_numeric | is_alphabetic, F.lit(-1))
-                .otherwise(F.regexp_replace(F.col(column_name), r"([0-9]+)[^0-9]?.*", r"$1").cast("int"))
-            ).withColumn(
-                f"{column_name}_restaurant_name",
-                F.when(is_numeric | is_alphabetic, F.col(column_name))
-                .otherwise(F.regexp_replace(F.col(column_name), r"^[0-9]+[^0-9]?(.*)", r"$1"))
-            ).withColumn(
-                f"{column_name}_restaurant_name",
-                F.when(F.col(f"{column_name}_restaurant_name").rlike("^[, -]"), 
-                    F.regexp_replace(F.col(f"{column_name}_restaurant_name"), r"^[, -]+", ""))
-                .otherwise(F.col(f"{column_name}_restaurant_name"))
-            )
-
-            df = df.withColumn(
-                f"{column_name}_restaurant_id",
-                F.when(F.col(f"{column_name}_restaurant_id").isNull(), F.lit(-1))
-                .otherwise(F.col(f"{column_name}_restaurant_id"))
-            )
-
-        return df
 
     @transformation_timer
     def get_unique_records_sql(self, df):
