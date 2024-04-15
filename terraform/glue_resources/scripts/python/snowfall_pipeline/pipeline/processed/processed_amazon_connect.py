@@ -120,7 +120,8 @@ class ProcessedAmazonConnect(TransformBase):
             'contacts_transferred_out_internal': ('contacts_transferred_out_internal', 'integer'),
             'customer_hold_time': ('customer_hold_time', 'integer'),
             'maximum_queued_time': ('maximum_queued_time', 'integer'),
-            'file_upload_date' : ('file_upload_date', 'date')
+            'file_upload_date' : ('file_upload_date', 'date'),
+            'cdc_timestamp':('cdc_timestamp','string')
 
             }
         # 2. Changes column names and schema

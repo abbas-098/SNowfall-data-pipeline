@@ -26,11 +26,12 @@ class ProcessedIncidentIntraday(TransformBase):
         2. Adding seconds column
         3. Splits datetime column
         4. Joining with location table
-        5. Filters passed records
-        6. Gets unique records
-        7. Drops unnecessary columns
-        8. Selecting columns to take to processed layer
-        9. Change column names and schema.
+        5. Removing Commas in Integer Columns
+        6. Filters passed records
+        7. Gets unique records
+        8. Drops unnecessary columns
+        9. Selecting columns to take to processed layer
+        10. Change column names and schema.
 
         Parameters:
         - df (DataFrame): Input DataFrame.
@@ -51,16 +52,19 @@ class ProcessedIncidentIntraday(TransformBase):
         # Step 4: Joining with location table
         df = self.join_location_table(df,'location_display_value')
 
-        # Step 5: Filters passed records
+        # Step 5: Removing Commas in Integer Columns
+        df = self.remove_commas_in_integer(df,['calendar_stc'])
+
+        # Step 6: Filters passed records
         df = self.filter_quality_result(df)
 
-        # Step 6: Gets unique records
+        # Step 7: Gets unique records
         df = self.get_unique_records_sql(df)
 
-        # Step 7: Drops unnecessary columns
+        # Step 8: Drops unnecessary columns
         df = self.drop_columns_for_processed(df)
 
-        # Step 8: Selecting Columns that I want to take to processed layer
+        # Step 9: Selecting Columns that I want to take to processed layer
         df = df = df.select(
         'restaurant_id',
         'restaurant_name',
@@ -285,10 +289,43 @@ class ProcessedIncidentIntraday(TransformBase):
         'reopened_time_dt',
         'reopened_time_timestamp',
         'u_reopen_date_time_dt',
-        'u_reopen_date_time_timestamp'
+        'u_reopen_date_time_timestamp',
+        'cdc_timestamp'
         )
 
         column_mapping = {
+
+        'restaurant_name': ('restaurant_name', 'string'),
+        'restaurant_id': ('restaurant_id', 'integer'),  
+        'number': ('incident_number', 'string'),     
+        'short_description': ('short_description', 'string'),
+        'state': ('state', 'string'),
+        'sys_created_on_dt': ('sys_created_date', 'date'),
+        'sys_created_on_timestamp': ('sys_created_timestamp', 'string'),
+        'opened_at_dt': ('opened_date', 'date'),
+        'opened_at_timestamp': ('opened_timestamp', 'string'),
+        'resolved_at_dt': ('resolved_at_date', 'date'),
+        'resolved_at_timestamp': ('resolved_at_timestamp', 'string'),
+        'closed_at_dt': ('closed_date', 'date'),
+        'closed_at_timestamp': ('closed_timestamp', 'string'),
+        'work_end_dt': ('work_end_date', 'date'),
+        'work_end_timestamp': ('work_end_timestamp', 'string'),
+        'reopened_time_dt': ('reopened_time_date', 'date'),
+        'reopened_time_timestamp': ('reopened_timestamp', 'string'),
+        'u_reopen_date_time_dt': ('u_reopen_date_time_date', 'date'),
+        'u_reopen_date_time_timestamp': ('u_reopen_date_timestamp', 'string')  ,
+        'business_duration_seconds': ('business_duration_seconds', 'integer'),
+        'calendar_stc': ('calendar_stc', 'integer'),
+        'priority': ('priority', 'string'),
+        'category': ('category', 'string'),
+        'subcategory': ('subcategory', 'string'),
+        'group_list': ('group_list', 'string'),
+        'service_offering_display_value': ('service_offering', 'string'),
+        'service_offering_link': ('service_offering_link', 'string'),
+        'u_vendor_display_value': ('u_vendor', 'string'),
+        'u_vendor_link': ('u_vendor_sys_user_group', 'string'),
+        'u_happysignal_feedback_number': ('u_happysignal_feedback_number', 'double'),
+        'u_happysignal_score': ('u_happysignal_score', 'double'),
         'active': ('active_flag', 'boolean'),
         'activity_due': ('activity_due', 'string'),
         'additional_assignee_list': ('additional_assignee_list', 'string'),
@@ -297,8 +334,6 @@ class ProcessedIncidentIntraday(TransformBase):
         'approval_set': ('approval_set', 'string'),
         'business_impact': ('business_impact', 'string'),
         'business_stc': ('business_stc', 'string'),
-        'calendar_stc': ('calendar_stc', 'string'),
-        'category': ('category', 'string'),
         'cause': ('cause', 'string'),
         'caused_by': ('caused_by', 'string'),
         'child_incidents': ('child_incidents_count', 'integer'),
@@ -315,28 +350,22 @@ class ProcessedIncidentIntraday(TransformBase):
         'escalation': ('escalation', 'string'),
         'expected_start': ('expected_start', 'string'),
         'follow_up': ('follow_up', 'string'),
-        'group_list': ('group_list', 'string'),
         'hold_reason': ('hold_reason', 'string'),
         'impact': ('impact', 'string'),
         'incident_state': ('incident_state', 'string'),
         'knowledge': ('knowledge_flag', 'boolean'),
         'made_sla': ('made_sla_flag', 'boolean'),
         'notify': ('notify', 'string'),
-        'number': ('incident_number', 'string'),
         'order': ('order', 'string'),
         'origin_id': ('origin_id', 'string'),
         'origin_table': ('origin_table', 'string'),
         'parent': ('parent', 'string'),
-        'priority': ('priority', 'string'),
         'reassignment_count': ('reassignment_count', 'integer'),
         'reopen_count': ('reopen_count', 'integer'),
         'route_reason': ('route_reason', 'string'),
         'severity': ('severity', 'string'),
-        'short_description': ('short_description', 'string'),
         'skills': ('skills', 'string'),
         'sla_due': ('sla_due', 'string'),
-        'state': ('state', 'string'),
-        'subcategory': ('subcategory', 'string'),
         'sys_class_name': ('sys_class_name', 'string'),
         'sys_created_by': ('sys_created_by', 'string'),
         'sys_domain_path': ('sys_domain_path', 'string'),
@@ -365,8 +394,6 @@ class ProcessedIncidentIntraday(TransformBase):
         'u_email_count': ('u_email_count', 'integer'),
         'u_first_time_fix': ('u_first_time_fix_flag', 'boolean'),
         'u_go_live': ('u_go_live', 'string'),
-        'u_happysignal_feedback_number': ('u_happysignal_feedback_number', 'double'),
-        'u_happysignal_score': ('u_happysignal_score', 'double'),
         'u_incident_from_chat': ('u_incident_from_chat_flag', 'boolean'),
         'u_incident_type': ('u_incident_type', 'string'),
         'u_is_this_store_high_value_contactless': ('u_is_this_store_high_value_contactless', 'string'),
@@ -419,12 +446,8 @@ class ProcessedIncidentIntraday(TransformBase):
         'u_franchisee_director_link': ('u_franchisee_director_sys_user', 'string'),
         'cmdb_ci_display_value': ('cmdb_ci', 'string'),
         'cmdb_ci_link': ('cmdb_ci_link', 'string'),
-        'u_vendor_display_value': ('u_vendor', 'string'),
-        'u_vendor_link': ('u_vendor_sys_user_group', 'string'),
         'u_connect_chat_display_value': ('u_connect_chat', 'string'),
         'u_connect_chat_link': ('u_connect_chat_chat_queue_entry', 'string'),
-        'service_offering_display_value': ('service_offering', 'string'),
-        'service_offering_link': ('service_offering_link', 'string'),
         'closed_by_display_value': ('closed_by', 'string'),
         'closed_by_link': ('closed_by_sys_user', 'string'),
         'parent_incident_display_value': ('parent_incident_number', 'string'),
@@ -471,7 +494,6 @@ class ProcessedIncidentIntraday(TransformBase):
         'location_link': ('location_link', 'string'),
         'rfc_display_value': ('rfc', 'string'),
         'rfc_link': ('rfc_link', 'string'),
-        'business_duration_seconds': ('business_duration_seconds', 'integer'),
         'u_time_store_may_close_seconds': ('u_time_store_may_close_seconds', 'integer'),
         'u_time_dt_may_close_seconds': ('u_time_dt_may_close_seconds', 'integer'),
         'u_time_store_ok2operate_seconds': ('u_time_store_ok2operate_seconds', 'integer'),
@@ -497,25 +519,10 @@ class ProcessedIncidentIntraday(TransformBase):
         'u_l1_5_assignment_time_timestamp': ('u_l1_5_assignment_timestamp', 'string'),
         'u_customer_escalation_time_dt': ('u_customer_escalation_time_date', 'date'),
         'u_customer_escalation_time_timestamp': ('u_customer_escalation_timestamp', 'string'),
-        'sys_created_on_dt': ('sys_created_date', 'date'),
-        'sys_created_on_timestamp': ('sys_created_timestamp', 'string'),
-        'closed_at_dt': ('closed_date', 'date'),
-        'closed_at_timestamp': ('closed_timestamp', 'string'),
-        'opened_at_dt': ('opened_date', 'date'),
-        'opened_at_timestamp': ('opened_timestamp', 'string'),
-        'work_end_dt': ('work_end_date', 'date'),
-        'work_end_timestamp': ('work_end_timestamp', 'string'),
-        'reopened_time_dt': ('reopened_time_date', 'date'),
-        'reopened_time_timestamp': ('reopened_timestamp', 'string'),
-        'resolved_at_dt': ('resolved_at_date', 'date'),
-        'resolved_at_timestamp': ('resolved_at_timestamp', 'string'),
-        'u_reopen_date_time_dt': ('u_reopen_date_time_date', 'date'),
-        'u_reopen_date_time_timestamp': ('u_reopen_date_timestamp', 'string'),
-        'restaurant_name': ('restaurant_name', 'string'),
-        'restaurant_id': ('restaurant_id', 'integer')                    
+        'cdc_timestamp':('cdc_timestamp','string')           
         }
 
-        # 9. Changes column names and schema
+        # 10. Changes column names and schema
         df = self.change_column_names_and_schema(df,column_mapping)
 
         return df

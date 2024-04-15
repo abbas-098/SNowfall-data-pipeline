@@ -761,7 +761,6 @@ class TransformBase:
             'dataqualityrulesfail', 
             'dataqualityrulesskip', 
             'dataqualityevaluationresult', 
-            'cdc_timestamp', 
             'cdc_glue_workflow_id',
             'unique_guid'
         ]
@@ -777,3 +776,20 @@ class TransformBase:
         modified_df = df.drop(*all_columns_to_drop)
 
         return modified_df
+
+    @transformation_timer
+    def remove_commas_in_integer(self,df, column_list):
+        """
+        Remove commas from specified columns in a PySpark DataFrame.
+
+        Args:
+            df (DataFrame): The input PySpark DataFrame.
+            column_list (list): A list of column names in the DataFrame from which commas should be removed.
+
+        Returns:
+            DataFrame: The DataFrame with commas removed from specified columns.
+        """
+        self.logger.info('Running the remove_commas_in_integer function..')
+        for column_name in column_list:
+            df = df.withColumn(column_name, F.regexp_replace(F.col(column_name), ',', ''))
+        return df

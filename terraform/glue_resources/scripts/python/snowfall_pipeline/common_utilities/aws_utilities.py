@@ -333,3 +333,43 @@ class AwsUtilities:
             self.logger.info(f"An error occurred while creating Athena Delta table: {str(e)}")
        
             return
+
+    def update_table_columns_to_timestamp(self, database_name, table_name, column_names):
+        """
+        Update specified columns to timestamp type in an existing table schema in AWS Glue Data Catalog.
+
+        Args:
+            database_name (str): The name of the database containing the table.
+            table_name (str): The name of the table to be updated.
+            column_names (list): A list of column names to be converted to timestamp type.
+        """
+        glue_client = boto3.client('glue')
+
+        # Determine the full database name
+        databases = {
+            'raw': 'uk_snowfall_raw',
+            'preparation': 'uk_snowfall_preparation',
+            'processed': 'uk_snowfall_processed',
+            'semantic': 'uk_snowfall_semantic'
+        }
+
+        full_database_name = databases.get(database_name)
+        if full_database_name is None:
+            self.logger.error('No matching database name found')
+            raise Exception('No matching database name found')
+
+        try:
+            response = glue_client.get_table(DatabaseName=full_database_name, Name=table_name)
+
+            # Update the column types to 'timestamp'
+            updated_columns = []
+            for column in response['Table']['StorageDescriptor']['Columns']:
+                if column['Name'] in column_names:
+                    column['Type'] = 'timestamp'
+                updated_columns.append(column)
+
+            # Update the table metadata with the modified column types
+            glue_client.update_table(DatabaseName=full_database_name, TableInput=response['Table'])
+            self.logger.info(f"Columns {column_names} updated to 'timestamp' type for table {full_database_name}.{table_name}")
+        except Exception as e:
+            self.logger.error(f"Error occurred while updating columns: {str(e)}")

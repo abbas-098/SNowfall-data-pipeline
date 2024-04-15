@@ -225,7 +225,8 @@ class ProcessedChangeRequest(TransformBase):
             'conflict_last_run_timestamp',
             'restaurant_full_name',
             'restaurant_name',
-            'restaurant_id'
+            'restaurant_id',
+            'cdc_timestamp'
         )
 
         # Step 10. Changes column names and schema
@@ -387,7 +388,8 @@ class ProcessedChangeRequest(TransformBase):
             'cab_date_time_dt': ('cab_date_time_date', 'date'),
             'cab_date_time_timestamp': ('cab_date_time_timestamp', 'string'),
             'conflict_last_run_dt': ('conflict_last_run_date', 'date'),
-            'conflict_last_run_timestamp': ('conflict_last_run_timestamp', 'string')
+            'conflict_last_run_timestamp': ('conflict_last_run_timestamp', 'string'),
+            'cdc_timestamp':('cdc_timestamp','string')
         }
 
         df = self.change_column_names_and_schema(df,column_mapping)

@@ -134,7 +134,8 @@ class ProcessedSysUser(TransformBase):
             'sys_created_on_timestamp',
             'restaurant_full_name',
             'restaurant_name',
-            'restaurant_id'
+            'restaurant_id',
+            'cdc_timestamp'
         )
 
         column_mapping = {
@@ -213,7 +214,8 @@ class ProcessedSysUser(TransformBase):
             'department_display_value': ('department', 'string'),
             'department_link': ('department_link', 'string'),
             'location_display_value': ('location', 'string'),
-            'location_link': ('location_cmn_link', 'string')
+            'location_link': ('location_cmn_link', 'string'),
+            'cdc_timestamp':('cdc_timestamp','string')
         }
 
         # 8. Changes column names and schema

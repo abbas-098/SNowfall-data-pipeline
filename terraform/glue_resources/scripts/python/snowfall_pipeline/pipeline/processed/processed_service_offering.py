@@ -186,9 +186,17 @@ class ProcessedServiceOffering(TransformBase):
             'sys_domain_link',
             'duplicate_of_display_value',
             'duplicate_of_link',
+            'cdc_timestamp'
         )
 
         column_mapping = {
+
+            'number': ('service_number', 'string'),
+            'sys_created_on_dt': ('sys_created_date', 'date'),
+            'sys_created_on_timestamp': ('sys_created_timestamp', 'string'),
+            'sys_updated_on_dt': ('sys_updated_date', 'date'),
+            'sys_updated_on_timestamp': ('sys_updated_timestamp', 'string'),
+            'comments': ('comments', 'string'),
             'aliases': ('aliases', 'string'),
             'asset': ('asset', 'string'),
             'asset_tag': ('asset_tag', 'string'),
@@ -213,7 +221,6 @@ class ProcessedServiceOffering(TransformBase):
             'checked_in': ('checked_in', 'string'),
             'checked_out': ('checked_out', 'string'),
             'checkout': ('checkout', 'string'),
-            'comments': ('comments', 'string'),
             'company': ('company', 'string'),
             'compatibility_dependencies': ('compatibility_dependencies', 'string'),
             'consumer_type': ('consumer_type', 'string'),
@@ -256,7 +263,6 @@ class ProcessedServiceOffering(TransformBase):
             'monitor': ('monitor', 'string'),
             'monitoring_requirements': ('monitoring_requirements', 'string'),
             'name': ('name', 'string'),
-            'number': ('service_number', 'string'),
             'operational_status': ('operational_status', 'string'),
             'order': ('order', 'string'),
             'order_date': ('order_date', 'date'),
@@ -314,10 +320,7 @@ class ProcessedServiceOffering(TransformBase):
             'sys_domain_link': ('sys_domain_sys_user_link', 'string'),
             'duplicate_of_display_value': ('duplicate_of', 'string'),
             'duplicate_of_link': ('duplicate_of_cmdb_link', 'string'),
-            'sys_updated_on_dt': ('sys_updated_date', 'date'),
-            'sys_updated_on_timestamp': ('sys_updated_timestamp', 'string'),
-            'sys_created_on_dt': ('sys_created_date', 'date'),
-            'sys_created_on_timestamp': ('sys_created_timestamp', 'string')
+            'cdc_timestamp':('cdc_timestamp','string')
         }
 
         # 7. Changes column names and schema

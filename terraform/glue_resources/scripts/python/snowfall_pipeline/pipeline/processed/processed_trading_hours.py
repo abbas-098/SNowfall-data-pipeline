@@ -43,7 +43,8 @@ class ProcessedTradingHours(TransformBase):
             'thursday': ('thursday_opening_times', 'string'),
             'friday': ('friday_opening_times', 'string'),
             'saturday': ('saturday_opening_times', 'string'),
-            'sunday': ('sunday_opening_times', 'string')
+            'sunday': ('sunday_opening_times', 'string'),
+            'cdc_timestamp':('cdc_timestamp','string')
             }
         
         # 2. Changes column names and schema

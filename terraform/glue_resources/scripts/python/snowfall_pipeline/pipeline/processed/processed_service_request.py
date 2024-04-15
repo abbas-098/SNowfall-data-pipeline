@@ -161,7 +161,8 @@ class ProcessedServiceRequest(TransformBase):
             'approval_set_dt',
             'approval_set_timestamp',
             'due_date_dt',
-            'due_date_timestamp'
+            'due_date_timestamp',
+            'cdc_timestamp'
             )
 
         column_mapping = {
@@ -270,7 +271,8 @@ class ProcessedServiceRequest(TransformBase):
             'cat_item_display_value': ('cat_item', 'string'),
             'cat_item_link': ('cat_item_link', 'string'),
             'business_service_display_value': ('business_service', 'string'),
-            'business_service_link': ('business_service_link', 'string')
+            'business_service_link': ('business_service_link', 'string'),
+            'cdc_timestamp':('cdc_timestamp','string')
         }
 
 

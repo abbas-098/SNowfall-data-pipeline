@@ -172,24 +172,36 @@ class ProcessedProblemRecord(TransformBase):
             'closed_at_timestamp',
             'restaurant_full_name',
             'restaurant_name',
-            'restaurant_id'
+            'restaurant_id',
+            'cdc_timestamp'
         )
 
 
         # Create a dictionary to map old column names to new column names and data types
         column_mapping = {
+
+            'restaurant_full_name': ('restaurant_full_name', 'string'),
+            'restaurant_name': ('restaurant_name', 'string'),
+            'restaurant_id': ('restaurant_id', 'integer'),
+            'number': ('problem_number', 'string'),
+            'sys_created_on_dt': ('sys_created_on_date', 'date'),
+            'sys_created_on_timestamp': ('sys_created_on_timestamp', 'string'),
+            'sys_updated_on_dt': ('sys_updated_on_date', 'date'),
+            'sys_updated_on_timestamp': ('sys_updated_on_timestamp', 'string'),
+            'opened_at_dt': ('opened_at_date', 'date'),
+            'opened_at_timestamp': ('opened_at_timestamp', 'string'),
+            'closed_at_dt': ('closed_at_date', 'date'),
+            'closed_at_timestamp': ('closed_at_timestamp', 'string'),
+            'business_duration_seconds': ('business_duration_seconds', 'integer'),
+            'calendar_duration_seconds': ('calendar_duration_seconds', 'integer'),
+            'close_notes': ('close_notes', 'string'),
+            'closed_by': ('closed_by', 'string'),
             'active': ('active_flag', 'boolean'),
             'activity_due': ('activity_due', 'string'),
             'additional_assignee_list': ('additional_assignee_list', 'string'),
             'approval': ('approval', 'string'),
             'approval_history': ('approval_history', 'string'),
             'approval_set': ('approval_set', 'string'),
-            'business_duration_seconds': ('business_duration_seconds', 'integer'),
-            'calendar_duration_seconds': ('calendar_duration_seconds', 'integer'),
-            'close_notes': ('close_notes', 'string'),
-            'closed_at_dt': ('closed_at_date', 'date'),
-            'closed_at_timestamp': ('closed_at_timestamp', 'string'),
-            'closed_by': ('closed_by', 'string'),
             'cmdb_ci': ('cmdb_ci', 'string'),
             'comments': ('comments', 'string'),
             'comments_and_work_notes': ('comments_and_work_notes', 'string'),
@@ -209,7 +221,6 @@ class ProcessedProblemRecord(TransformBase):
             'known_error': ('known_error_flag', 'boolean'),
             'made_sla': ('made_sla_flag', 'boolean'),
             'major_problem': ('major_problem_flag', 'boolean'),
-            'number': ('problem_number', 'string'),
             'order': ('order', 'string'),
             'parent': ('parent', 'string'),
             'priority': ('priority', 'string'),
@@ -260,6 +271,8 @@ class ProcessedProblemRecord(TransformBase):
             'work_start': ('work_start', 'string'),
             'created_year': ('created_year', 'int'),
             'created_month': ('created_month', 'int'),
+            'location_display_value': ('location', 'string'),
+            'location_link': ('location_link', 'string'),
             'opened_by_display_value': ('opened_by', 'string'),
             'opened_by_link': ('opened_by_sys_user_link', 'string'),
             'sys_domain_display_value': ('sys_domain', 'string'),
@@ -278,17 +291,7 @@ class ProcessedProblemRecord(TransformBase):
             'assigned_to_link': ('assigned_to_sys_user_link', 'string'),
             'u_franchisees_consultant_display_value': ('u_franchisees_consultant', 'string'),
             'u_franchisees_consultant_link': ('u_franchisees_consultant_sys_user_link', 'string'),
-            'location_display_value': ('location', 'string'),
-            'location_link': ('location_link', 'string'),
-            'sys_updated_on_dt': ('sys_updated_on_date', 'date'),
-            'sys_updated_on_timestamp': ('sys_updated_on_timestamp', 'string'),
-            'sys_created_on_dt': ('sys_created_on_date', 'date'),
-            'sys_created_on_timestamp': ('sys_created_on_timestamp', 'string'),
-            'opened_at_dt': ('opened_at_date', 'date'),
-            'opened_at_timestamp': ('opened_at_timestamp', 'string'),
-            'restaurant_full_name': ('restaurant_full_name', 'string'),
-            'restaurant_name': ('restaurant_name', 'string'),
-            'restaurant_id': ('restaurant_id', 'integer')
+            'cdc_timestamp':('cdc_timestamp','string')
         }
 
 

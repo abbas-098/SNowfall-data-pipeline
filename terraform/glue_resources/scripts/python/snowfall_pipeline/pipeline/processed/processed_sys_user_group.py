@@ -77,7 +77,8 @@ class ProcessedSysUserGroup(TransformBase):
             'sys_updated_on_dt',
             'sys_updated_on_timestamp',
             'sys_created_on_dt',
-            'sys_created_on_timestamp'
+            'sys_created_on_timestamp',
+            'cdc_timestamp'
         )
 
         column_mapping = {
@@ -104,7 +105,8 @@ class ProcessedSysUserGroup(TransformBase):
             'type': ('type', 'string'),
             'created_year': ('created_year', 'integer'),
             'created_month': ('created_month', 'integer'),
-            'manager_link': ('manager_sys_user_link', 'string')
+            'manager_link': ('manager_sys_user_link', 'string'),
+            'cdc_timestamp':('cdc_timestamp','string')
         }
 
 
