@@ -126,3 +126,13 @@ resource "aws_glue_catalog_database" "semantic_database" {
     prevent_destroy = false  # Allow Terraform to delete the database
   }
 }
+
+resource "aws_glue_catalog_database" "microstrategy_database" {
+  name = "uk_snowfall_microstrategy"
+  description = "Playground for MicroStrategy"
+
+  lifecycle {
+    ignore_changes = [name,description]
+    prevent_destroy = false  # Allow Terraform to delete the database
+  }
+}

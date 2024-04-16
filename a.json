@@ -74,6 +74,26 @@
             ],
             "Effect": "Allow",
             "Sid": "VisualEditor2"
+        },
+        {
+            "Sid": "VisualEditor29",
+            "Effect": "Allow",
+            "Action": [
+                "glue:UpdateTable",
+                "glue:CreateTable",
+                "glue:DeleteTable",
+                "athena:CreatePreparedStatement",
+                "athena:UpdateNamedQuery",
+                "athena:CreateNamedQuery",
+                "athena:UpdatePreparedStatement",
+                "athena:DeleteNamedQuery",
+                "athena:DeletePreparedStatement"
+            ],
+            "Resource": ["arn:aws:athena:*:646303040748:workgroup/*",
+            "arn:aws:glue:*:646303040748:catalog",
+            "arn:aws:glue:*:646303040748:database/uk_snowfall_microstrategy",
+            "arn:aws:glue:*:646303040748:table/uk_snowfall_microstrategy/*"
+        ]
         }
     ]
 }
