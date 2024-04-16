@@ -48,7 +48,7 @@
                 "arn:aws:glue:*:646303040748:database/uk_snowfall*",
                 "arn:aws:glue:*:646303040748:catalog",
                 "arn:aws:glue:*:646303040748:database/default",
-                "arn:aws:glue:*:646303040748:table/*/*"
+                "arn:aws:glue:*:646303040748:table/uk_snowfall*/*"
             ],
             "Effect": "Allow",
             "Sid": "VisualEditor1"
@@ -89,7 +89,7 @@
                 "athena:DeleteNamedQuery",
                 "athena:DeletePreparedStatement"
             ],
-            "Resource": ["arn:aws:athena:*:646303040748:workgroup/*",
+            "Resource": ["arn:aws:athena:*:646303040748:workgroup/impossible",
             "arn:aws:glue:*:646303040748:catalog",
             "arn:aws:glue:*:646303040748:database/uk_snowfall_microstrategy",
             "arn:aws:glue:*:646303040748:table/uk_snowfall_microstrategy/*"
