@@ -13,19 +13,21 @@ resource "aws_s3_bucket_versioning" "landing_versioning" {
   }
 }
 
-resource "aws_s3_bucket_lifecycle_rule" "landing_delete_marker" {
+resource "aws_s3_bucket_lifecycle_configuration" "landing_lifecycle_rules" {
+  depends_on = [aws_s3_bucket_versioning.landing_versioning]
+
   bucket = aws_s3_bucket.landing_bucket.id
 
-  enabled = true
+  rule {
+    id = "Removing Objects with delete markers"
 
-  expiration {
-    days = 30
-    expired_object_delete_marker = true
+
+    noncurrent_version_expiration {
+      noncurrent_days = 30
+    }
+    status = "Enabled"
   }
-
-  tags = var.resource_tags
 }
-
 
 resource "aws_s3_bucket_policy" "allow_access_from_appflow_and_connect" {
   bucket = aws_s3_bucket.landing_bucket.id
