@@ -20,10 +20,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "landing_lifecycle_rules" {
 
   rule {
     id = "Removing Objects with delete markers"
-    expiration {
-      days = 30
-      expired_object_delete_marker = true
-    }
+
     noncurrent_version_expiration {
       noncurrent_days = 30
     }
