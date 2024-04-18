@@ -13,6 +13,20 @@ resource "aws_s3_bucket_versioning" "landing_versioning" {
   }
 }
 
+resource "aws_s3_bucket_lifecycle_rule" "landing_delete_marker" {
+  bucket = aws_s3_bucket.landing_bucket.id
+
+  enabled = true
+
+  expiration {
+    days = 30
+    expired_object_delete_marker = true
+  }
+
+  tags = var.resource_tags
+}
+
+
 resource "aws_s3_bucket_policy" "allow_access_from_appflow_and_connect" {
   bucket = aws_s3_bucket.landing_bucket.id
   policy = data.template_file.bucket_policy.rendered
