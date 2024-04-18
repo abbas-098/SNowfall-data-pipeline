@@ -24,6 +24,9 @@ resource "aws_s3_bucket_lifecycle_configuration" "landing_lifecycle_rules" {
       days = 30
       expired_object_delete_marker = true
     }
+    noncurrent_version_expiration {
+      noncurrent_days = 30
+    }
     status = "Enabled"
   }
 }
