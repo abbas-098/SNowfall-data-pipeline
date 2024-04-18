@@ -9,6 +9,7 @@ class PreparationIncidentIntraday(TransformBase):
     def __init__(self, spark, sc, glueContext):
         super().__init__(spark, sc, glueContext)
         self.spark.conf.set("spark.sql.shuffle.partitions", "5") 
+        self.spark.conf.set("spark.databricks.delta.schema.autoMerge.enabled", "true")
         self.pipeline_config = self.full_configs['incidents']
         self.dq_rule = dq_rules.get('incidents')
         self.file_path = "service_now/incident/intraday"
@@ -30,7 +31,8 @@ class PreparationIncidentIntraday(TransformBase):
         3. Remove trailing whitespaces
         4. Perform data quality check.
         5. Mask PII Data
-        6. Add CDC columns.
+        6. Extract Unique rows
+        7. Add CDC columns.
 
         Parameters:
         - df: Input DataFrame.
@@ -55,7 +57,10 @@ class PreparationIncidentIntraday(TransformBase):
         # Step 5: Mask PII Information
         df = self.redact_pii_columns(df,self.pipeline_config.get('redact_pii_columns'))
 
-        # Step 6: Add CDC columns
+        # Step 6: Extract Unique Rows
+        df = self.get_unique_records_sql(df,unique_sql_query)    
+
+        # Step 7: Add CDC columns
         df = self.adding_cdc_columns(df)
 
         return df
@@ -69,7 +74,7 @@ class PreparationIncidentIntraday(TransformBase):
         Parameters:
         - df (DataFrame): Input DataFrame to be saved.
 
-        """
+        """        
         # Define the S3 save path
         save_output_path = f"s3://{self.preparation_bucket_name}/{self.file_path}/"
 
@@ -103,3 +108,16 @@ class PreparationIncidentIntraday(TransformBase):
             self.aws_instance.send_sns_message(message)
         
         self.logger.info(f'Finished running the {self.__class__.__name__} pipeline!')
+
+
+unique_sql_query =  """
+                SELECT a.*
+                FROM my_dataframe a
+                INNER JOIN (
+                    SELECT number, state, MAX(to_timestamp(sys_updated_on, 'dd-MM-yyyy HH:mm:ss')) AS latest_timestamp
+                    FROM my_dataframe
+                    GROUP BY number, state
+                ) b ON a.number = b.number AND 
+                    a.state = b.state AND 
+                    to_timestamp(a.sys_updated_on, 'dd-MM-yyyy HH:mm:ss') = b.latest_timestamp
+        """

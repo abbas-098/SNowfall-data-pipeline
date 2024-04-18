@@ -1,83 +1,83 @@
 dq_rules = {
 
     "location": """Rules = [
-        ColumnCount = 76,
+        ColumnCount <= 80,
         RowCount > 0,
         IsComplete "sys_created_on"
         ]""",
 
     "location_hierarchy":"""Rules = [
-        ColumnCount = 76,
+        ColumnCount <= 80,
         RowCount > 0,
         IsComplete "STORE_NUMBER",
         IsComplete "STORE_NAME"
         ]""",
 
     "incidents":"""Rules = [
-        ColumnCount = 176,
+        ColumnCount <= 181,
         RowCount > 0,
         IsComplete "number",
         IsComplete "sys_created_on"
         ]""",
 
     "amazon_connect": """Rules = [
-        ColumnCount = 86,
+        ColumnCount <= 90,
         RowCount > 0,
         IsComplete "queue",
         IsComplete "file_upload_date"
     ]""" ,
 
     "adj_trading_hours": """Rules = [
-        ColumnCount = 9,
+        ColumnCount <= 12,
         RowCount > 0,
         IsComplete "STORE_NUMBER",
         IsComplete "CHANNEL"
     ]""",
 
     "change_request": """Rules = [
-        ColumnCount = 131,
+        ColumnCount <= 133,
         RowCount > 0,
         IsComplete "number",
         IsComplete "sys_created_on"
     ]""",
 
     "problem_record": """Rules = [
-        ColumnCount = 92,
+        ColumnCount <= 95,
         RowCount > 0,
         IsComplete "number",
         IsComplete "sys_created_on"
     ]""" ,
 
     "service_offering": """Rules = [
-        ColumnCount = 120,
+        ColumnCount <= 125,
         RowCount > 0,
         IsComplete "number",
         IsComplete "sys_created_on"
     ]""",
 
     "service_request": """Rules = [
-        ColumnCount = 88,
+        ColumnCount <= 95,
         RowCount > 0,
         IsComplete "number",
         IsComplete "sys_created_on"
     ]""",
 
     "sys_user_group": """Rules = [
-        ColumnCount = 19,
+        ColumnCount <= 20,
         RowCount > 0,
         IsComplete "sys_id",
         IsComplete "sys_created_on"
     ]""",
 
     "sys_user": """Rules = [
-        ColumnCount = 62,
+        ColumnCount <= 65,
         RowCount > 0,
         IsComplete "sys_id",
         IsComplete "sys_created_on"
     ]""",
     
     "trading_hours": """Rules = [
-        ColumnCount = 9,
+        ColumnCount <= 10,
         RowCount > 0,
         IsComplete "STORE_NUMBER",
         IsComplete "CHANNEL"

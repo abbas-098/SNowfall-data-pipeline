@@ -2,6 +2,7 @@ import boto3
 import sys
 import json
 import zipfile
+import time
 import re
 from awsglue.utils import getResolvedOptions
 from pyspark.sql.utils import AnalysisException
@@ -331,45 +332,79 @@ class AwsUtilities:
         except Exception as e:
             # Log the error and continue
             self.logger.info(f"An error occurred while creating Athena Delta table: {str(e)}")
-       
             return
 
-    def update_table_columns_to_timestamp(self, database_name, table_name, column_names):
+    def check_query_status(self, execution_id):
+        if execution_id is None:
+            self.logger.info('No Athena query execution ID passed in. Exiting the function.')
+            return False
+
+        athena_client = boto3.client('athena', region_name='eu-central-1')
+        start_time = time.time()
+
+        while True:
+            response = athena_client.get_query_execution(QueryExecutionId=execution_id)
+            status = response['QueryExecution']['Status']['State']
+
+            if status == 'SUCCEEDED':
+                return True
+            elif status in ['FAILED', 'CANCELLED']:
+                return False
+            if time.time() - start_time > 50:
+                raise TimeoutError("Query execution timed out")
+            time.sleep(1)
+
+
+    def update_table_columns_to_timestamp(self,db_name, table_name, columns_to_convert):
         """
-        Update specified columns to timestamp type in an existing table schema in AWS Glue Data Catalog.
+        Update specified columns in a table to have the data type 'timestamp' in AWS Glue catalog.
 
         Args:
-            database_name (str): The name of the database containing the table.
-            table_name (str): The name of the table to be updated.
-            column_names (list): A list of column names to be converted to timestamp type.
+            db_name (str): The name of the database where the table is located.
+            table_name (str): The name of the table whose columns need to be updated.
+            columns_to_convert (list): A list of column names to convert to 'timestamp' data type.
+
+        Raises:
+            Exception: If no matching database name is found in the predefined databases.
+
         """
-        glue_client = boto3.client('glue')
-
-        # Determine the full database name
-        databases = {
-            'raw': 'uk_snowfall_raw',
-            'preparation': 'uk_snowfall_preparation',
-            'processed': 'uk_snowfall_processed',
-            'semantic': 'uk_snowfall_semantic'
-        }
-
-        full_database_name = databases.get(database_name)
-        if full_database_name is None:
-            self.logger.error('No matching database name found')
-            raise Exception('No matching database name found')
-
         try:
-            response = glue_client.get_table(DatabaseName=full_database_name, Name=table_name)
+            glue_client = boto3.client('glue', region_name='eu-central-1')
 
-            # Update the column types to 'timestamp'
-            updated_columns = []
-            for column in response['Table']['StorageDescriptor']['Columns']:
-                if column['Name'] in column_names:
+            # Determine the full database name
+            databases = {
+                'raw': 'uk_snowfall_raw',
+                'preparation': 'uk_snowfall_preparation',
+                'processed': 'uk_snowfall_processed',
+                'semantic': 'uk_snowfall_semantic'
+            }
+
+            database_name = databases.get(db_name)
+            if database_name is None:
+                raise Exception('No matching database name found')
+
+            response = glue_client.get_table(DatabaseName=database_name, Name=table_name)
+            table = response['Table']
+            
+            new_columns = []
+            for column in table['StorageDescriptor']['Columns']:
+                if column['Name'] in columns_to_convert:
                     column['Type'] = 'timestamp'
-                updated_columns.append(column)
+                new_columns.append(column)
 
-            # Update the table metadata with the modified column types
-            glue_client.update_table(DatabaseName=full_database_name, TableInput=response['Table'])
-            self.logger.info(f"Columns {column_names} updated to 'timestamp' type for table {full_database_name}.{table_name}")
+            new_storage_descriptor = table['StorageDescriptor']
+            new_storage_descriptor['Columns'] = new_columns
+
+            table_input = {
+                'Name': table_name,
+                'StorageDescriptor': new_storage_descriptor,
+                'PartitionKeys': table['PartitionKeys'],
+                'TableType': table['TableType'],
+                'Parameters': table['Parameters'] 
+            }
+
+            glue_client.update_table(DatabaseName=database_name, TableInput=table_input)
+            self.logger.info(f"Schema updated for {table_name} in {database_name}.")
+
         except Exception as e:
-            self.logger.error(f"Error occurred while updating columns: {str(e)}")
+            self.logger.error(f"An error occurred: {str(e)}")

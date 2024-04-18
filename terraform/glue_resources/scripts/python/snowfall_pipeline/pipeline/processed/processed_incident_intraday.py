@@ -8,6 +8,7 @@ class ProcessedIncidentIntraday(TransformBase):
     def __init__(self, spark, sc, glueContext):
         super().__init__(spark, sc, glueContext)
         self.spark.conf.set("spark.sql.shuffle.partitions", "5") 
+        self.spark.conf.set("spark.databricks.delta.schema.autoMerge.enabled", "false")
         self.pipeline_config = self.full_configs['incidents']
         self.file_path = "service_now/incident/intraday"
 
@@ -28,10 +29,9 @@ class ProcessedIncidentIntraday(TransformBase):
         4. Joining with location table
         5. Removing Commas in Integer Columns
         6. Filters passed records
-        7. Gets unique records
-        8. Drops unnecessary columns
-        9. Selecting columns to take to processed layer
-        10. Change column names and schema.
+        7. Drops unnecessary columns
+        8. Selecting columns to take to processed layer
+        9. Change column names and schema.
 
         Parameters:
         - df (DataFrame): Input DataFrame.
@@ -58,13 +58,10 @@ class ProcessedIncidentIntraday(TransformBase):
         # Step 6: Filters passed records
         df = self.filter_quality_result(df)
 
-        # Step 7: Gets unique records
-        df = self.get_unique_records_sql(df)
-
-        # Step 8: Drops unnecessary columns
+        # Step 7: Drops unnecessary columns
         df = self.drop_columns_for_processed(df)
 
-        # Step 9: Selecting Columns that I want to take to processed layer
+        # Step 8: Selecting Columns that I want to take to processed layer
         df = df = df.select(
         'restaurant_id',
         'restaurant_name',
@@ -423,7 +420,7 @@ class ProcessedIncidentIntraday(TransformBase):
         'u_techsee_session': ('u_techsee_session', 'string'),
         'u_techsee_session_id_url': ('u_techsee_session_id_url', 'string'),
         'u_techsee_sessionid': ('u_techsee_sessionid', 'string'),
-        'u_total_strike_count': ('u_total_strike_count', 'string'),
+        'u_total_strike_count': ('u_total_strike_count', 'integer'),
         'u_trade_impact': ('u_trade_impact', 'string'),
         'u_vendor_not_found': ('u_vendor_not_found_flag', 'boolean'),
         'u_vendor_ticket': ('u_vendor_ticket', 'string'),
@@ -522,7 +519,7 @@ class ProcessedIncidentIntraday(TransformBase):
         'cdc_timestamp':('cdc_timestamp','string')           
         }
 
-        # 10. Changes column names and schema
+        # Step 9. Changes column names and schema
         df = self.change_column_names_and_schema(df,column_mapping)
 
         return df
@@ -546,11 +543,39 @@ class ProcessedIncidentIntraday(TransformBase):
                 
             # Determine whether to create or merge to the Delta table
             if self.athena_trigger:
+
                 # Create the Delta table
                 df.write.format("delta").mode("overwrite").save(save_output_path)
 
                 # Execute Athena query to create the table
-                self.aws_instance.create_athena_delta_table('processed', 'service_now_incident_intraday', save_output_path, self.athena_output_path)
+                execution_query_id = self.aws_instance.create_athena_delta_table('processed', 'service_now_incident_intraday', save_output_path, self.athena_output_path)
+
+                # Change string data type to timestamp via glue schema
+                if self.aws_instance.check_query_status(execution_query_id) is True:
+                    timestamp_columns = [
+                        'sys_created_timestamp',
+                        'opened_timestamp',
+                        'resolved_at_timestamp',
+                        'closed_timestamp',
+                        'work_end_timestamp',
+                        'reopened_time_timestamp',
+                        'u_reopen_date_timestamp',
+                        'u_reopen_date_time_timestamp',
+                        'u_vista_dispatched_eta_timestamp',
+                        'u_vista_offsite_timestamp',
+                        'u_vista_onsite_timestamp',
+                        'u_call_back_time_timestamp',
+                        'u_last_assignment_time_timestamp',
+                        'u_techsee_agent_session_start_time_timestamp',
+                        'u_techsee_agent_session_start_timestamp',
+                        'u_l1_5_assignment_timestamp',
+                        'u_customer_escalation_timestamp',
+                        'u_techsee_agent_session_start_timestamp',
+                        'cdc_timestamp',
+                        'u_sdm_escalation_time'
+                    ]
+                    
+                    self.aws_instance.update_table_columns_to_timestamp('processed','service_now_incident_intraday',timestamp_columns)
                 
             else:
 
@@ -566,24 +591,3 @@ class ProcessedIncidentIntraday(TransformBase):
 
             
             self.logger.info(f'Finished running the {self.__class__.__name__} pipeline!')
-
-
-    @transformation_timer
-    def get_unique_records_sql(self, df):
-        """
-        Run the SQL query on the dataframe.
-        """
-        self.logger.info('Running the get_unique_records function.')
-        df.createOrReplaceTempView("my_dataframe")
-        query =  """
-                SELECT a.*
-                FROM my_dataframe a
-                INNER JOIN (
-                    SELECT number, state, MAX(to_timestamp(sys_updated_on, 'dd-MM-yyyy HH:mm:ss')) AS latest_timestamp
-                    FROM my_dataframe
-                    GROUP BY number, state
-                ) b ON a.number = b.number AND 
-                    a.state = b.state AND 
-                    to_timestamp(a.sys_updated_on, 'dd-MM-yyyy HH:mm:ss') = b.latest_timestamp
-                """
-        return self.spark.sql(query)

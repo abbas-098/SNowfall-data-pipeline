@@ -50,6 +50,7 @@ class TransformBase:
         self.spark = spark
         self.sc = sc
         self.glueContext = glueContext
+        self.spark.conf.set("spark.databricks.delta.schema.autoMerge.enabled", "false")
         self._initial_message_printed()
         self.aws_instance = AwsUtilities()
         self.sns_trigger = False
@@ -122,7 +123,7 @@ class TransformBase:
         Raises:
             Exception: If no column count number is found in the data quality rules.
         """
-        pattern = r'ColumnCount\s*=\s*(\d+)'
+        pattern = r'ColumnCount\s*<=\s*(\d+)'
         match = re.search(pattern, input_string)
         # Plus 4 since there are 4 DQ columns
         if match:
@@ -187,7 +188,7 @@ class TransformBase:
             F.expr(f"""
                 CASE
                     WHEN DataQualityEvaluationResult = 'Passed' AND 
-                         {column_count} = {column_count_expected} AND 
+                         {column_count} <= {column_count_expected} AND 
                          LENGTH(TRIM({pk})) >= 1 THEN 'Passed'
                     ELSE 'Failed'
                 END
@@ -427,6 +428,8 @@ class TransformBase:
         """
         # Log the file path from where data is being read
         self.logger.info(f'Reading data in the file path: s3://{bucket_name}/{file_path}/')
+
+        self.logger.info(f"Files processed: {self.list_of_files}")
 
         if file_format == 'json':
             source_df = self.spark.read.json(f"s3://{bucket_name}/{file_path}/")
@@ -793,3 +796,30 @@ class TransformBase:
         for column_name in column_list:
             df = df.withColumn(column_name, F.regexp_replace(F.col(column_name), ',', ''))
         return df
+
+
+    @transformation_timer
+    def get_unique_records_sql(self, df,sql_query=None):
+        """
+        Run the SQL query on the dataframe.
+        """
+        self.logger.info('Running the get_unique_records function.')
+
+        initial_count = df.count()
+        if sql_query is None:
+
+            sql_query = """
+                SELECT a.*
+                FROM my_dataframe a
+                INNER JOIN (
+                    SELECT number, MAX(to_timestamp(sys_updated_on, 'dd-MM-yyyy HH:mm:ss')) AS latest_timestamp
+                    FROM my_dataframe
+                    GROUP BY number
+                ) b ON a.number = b.number AND 
+                to_timestamp(a.sys_updated_on, 'dd-MM-yyyy HH:mm:ss') = b.latest_timestamp
+                """
+        df.createOrReplaceTempView("my_dataframe")
+        unique_df = self.spark.sql(sql_query)
+        final_count = unique_df.count()
+        self.logger.info(f"{initial_count - final_count} rows have been removed after running get_unique_records function")
+        return unique_df

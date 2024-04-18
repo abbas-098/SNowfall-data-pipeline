@@ -24,3 +24,4 @@ resource "aws_s3_object" "snowfall_pipeline_zip" {
   source = "${path.module}/zips/snowfall_pipeline.zip" 
   etag = filemd5("${path.module}/zips/snowfall_pipeline.zip")
 }
+

@@ -8,7 +8,8 @@ class PreparationProblemRecord(TransformBase):
 
     def __init__(self, spark, sc, glueContext):
         super().__init__(spark, sc, glueContext)
-        self.spark.conf.set("spark.sql.shuffle.partitions", "5") 
+        self.spark.conf.set("spark.sql.shuffle.partitions", "5")
+        self.spark.conf.set("spark.databricks.delta.schema.autoMerge.enabled", "true") 
         self.pipeline_config = self.full_configs[self.datasets]
         self.dq_rule = dq_rules.get(self.datasets)
         self.file_path = "service_now/problem_record"
@@ -30,8 +31,9 @@ class PreparationProblemRecord(TransformBase):
         3. Remove trailing whitespaces
         4. Perform data quality check.
         5. Mask PII Data
-        6. Add CDC columns.
-        7. Add Partition Columns
+        6. Extract unique records
+        7. Add CDC columns.
+        8. Add Partition Columns
 
         Parameters:
         - df: Input DataFrame.
@@ -56,10 +58,13 @@ class PreparationProblemRecord(TransformBase):
         # Step 5: Mask PII Information
         df = self.redact_pii_columns(df,self.pipeline_config.get('redact_pii_columns'))
 
-        # Step 6: Add CDC columns
+        # Step 6: Extract Unique Rows
+        df = self.get_unique_records_sql(df)    
+
+        # Step 7: Add CDC columns
         df = self.adding_cdc_columns(df)
 
-        # Step 7: Adding Partiton Columns
+        # Step 8: Adding Partiton Columns
         df = self.create_partition_date_columns(df,'sys_created_on','created')
 
         return df

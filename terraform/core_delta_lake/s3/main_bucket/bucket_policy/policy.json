@@ -30,9 +30,9 @@
             "Sid": "AmazonConnectDataShare",
             "Effect": "Allow",
             "Principal": {
-                "AWS": "arn:aws:iam::960870211945:role/service-role/s3crr_role_for_mcd-prod-historicalmetrics-replication_1"
+                "AWS": "arn:aws:iam::960870211945:role/service-role/s3crr_role_for_mcd-prod-historicalmetrics-replication_2"
             },
-            "Action": "s3:Put*",
+            "Action": "s3:*",
             "Resource": "arn:aws:s3:::eu-central1-${environment}-uk-snowfall-landing-${account_number}/*"
         },
         {

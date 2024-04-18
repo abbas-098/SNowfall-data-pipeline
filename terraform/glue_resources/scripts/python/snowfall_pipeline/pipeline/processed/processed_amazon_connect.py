@@ -154,7 +154,12 @@ class ProcessedAmazonConnect(TransformBase):
             df.write.format("delta").mode("overwrite").save(save_output_path)
 
             # Execute Athena query to create the table
-            self.aws_instance.create_athena_delta_table('processed', 'amazon_connect', save_output_path, self.athena_output_path)
+            execution_query_id = self.aws_instance.create_athena_delta_table('processed', 'amazon_connect', save_output_path, self.athena_output_path)
+
+            # Change string data type to timestamp via glue schema
+            if self.aws_instance.check_query_status(execution_query_id) is True:
+                timestamp_columns = ['cdc_timestamp']
+                self.aws_instance.update_table_columns_to_timestamp('processed','amazon_connect',timestamp_columns)
             
         else:
 

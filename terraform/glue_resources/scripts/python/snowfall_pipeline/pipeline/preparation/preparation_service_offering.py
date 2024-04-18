@@ -7,7 +7,8 @@ class PreparationServiceOffering(TransformBase):
 
     def __init__(self, spark, sc, glueContext):
         super().__init__(spark, sc, glueContext)
-        self.spark.conf.set("spark.sql.shuffle.partitions", "5") 
+        self.spark.conf.set("spark.sql.shuffle.partitions", "5")
+        self.spark.conf.set("spark.databricks.delta.schema.autoMerge.enabled", "true") 
         self.pipeline_config = self.full_configs[self.datasets]
         self.dq_rule = dq_rules.get(self.datasets)
         self.file_path = "service_now/service_offering"
@@ -28,8 +29,9 @@ class PreparationServiceOffering(TransformBase):
         2. Convert all structs to strings.
         3. Remove Trailing Whitespaces
         4. Perform data quality check.
-        5. Add CDC columns.
-        6. Add Partition Columns
+        5. Extract Unique Columns
+        6. Add CDC columns.
+        7. Add Partition Columns
 
         Parameters:
         - df: Input DataFrame.
@@ -51,10 +53,13 @@ class PreparationServiceOffering(TransformBase):
         # Step 4: Data quality check
         df = self.data_quality_check(df, self.dq_rule,self.pipeline_config.get('primary_key'), self.raw_bucket_name, self.file_path, 'json')
 
-        # Step 5: Add CDC columns
+        # Step 5: Extract Unique Rows
+        df = self.get_unique_records_sql(df) 
+
+        # Step 6: Add CDC columns
         df = self.adding_cdc_columns(df)
 
-        # Step 6: Adding Partiton Columns
+        # Step 7: Adding Partiton Columns
         df = self.create_partition_date_columns(df,'sys_created_on','created')
 
         return df
@@ -102,6 +107,4 @@ class PreparationServiceOffering(TransformBase):
             self.aws_instance.send_sns_message(message)
         
         self.logger.info(f'Finished running the {self.__class__.__name__} pipeline!')
-
-
 

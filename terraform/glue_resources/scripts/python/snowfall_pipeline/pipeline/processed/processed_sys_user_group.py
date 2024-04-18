@@ -25,10 +25,9 @@ class ProcessedSysUserGroup(TransformBase):
         1. Splits JSON column
         2. Splits datetime column
         3. Filters passed records
-        4. Gets unique records
-        5. Drops unnecessary columns
-        6. Selecting columns to take to processed layer
-        7. Change column names and schema.
+        4. Drops unnecessary columns
+        5. Selecting columns to take to processed layer
+        6. Change column names and schema.
 
         Parameters:
         - df (DataFrame): Input DataFrame.
@@ -46,13 +45,10 @@ class ProcessedSysUserGroup(TransformBase):
         # Step 3: Filters passed records
         df = self.filter_quality_result(df)
 
-        # Step 4: Gets unique records
-        df = self.get_unique_records_sql(df)
-
-        # Step 5: Drops unnecessary columns
+        # Step 4: Drops unnecessary columns
         df = self.drop_columns_for_processed(df)
 
-        # Step 6: Selecting Columns that I want to take to processed layer
+        # Step 5: Selecting Columns that I want to take to processed layer
         df = df.select(
             'active',
             'cost_center',
@@ -110,7 +106,7 @@ class ProcessedSysUserGroup(TransformBase):
         }
 
 
-        # 7. Changes column names and schema
+        # Step 6. Changes column names and schema
         df = self.change_column_names_and_schema(df,column_mapping)
 
  
@@ -141,7 +137,17 @@ class ProcessedSysUserGroup(TransformBase):
             .save(save_output_path)
 
             # Execute Athena query to create the table
-            self.aws_instance.create_athena_delta_table('processed', 'service_now_sys_user_group', save_output_path, self.athena_output_path)
+            execution_query_id = self.aws_instance.create_athena_delta_table('processed', 'service_now_sys_user_group', save_output_path, self.athena_output_path)
+
+            # Change string data type to timestamp via glue schema
+            if self.aws_instance.check_query_status(execution_query_id) is True:
+                
+                timestamp_columns = [
+                    'sys_created_timestamp',
+                    'sys_updated_timestamp',
+                    'cdc_timestamp'
+                ]             
+                self.aws_instance.update_table_columns_to_timestamp('processed','service_now_sys_user_group',timestamp_columns)
             
         else:
 
@@ -157,24 +163,3 @@ class ProcessedSysUserGroup(TransformBase):
         
         self.logger.info(f'Finished running the {self.__class__.__name__} pipeline!')
 
-
-
-
-    @transformation_timer
-    def get_unique_records_sql(self, df):
-        """
-        Run the SQL query on the dataframe.
-        """
-        self.logger.info('Running the get_unique_records function.')
-        df.createOrReplaceTempView("my_dataframe")
-        query =  """
-                SELECT a.*
-                FROM my_dataframe a
-                INNER JOIN (
-                    SELECT sys_id, MAX(to_timestamp(sys_updated_on, 'dd-MM-yyyy HH:mm:ss')) AS latest_timestamp
-                    FROM my_dataframe
-                    GROUP BY sys_id
-                ) b ON a.sys_id = b.sys_id AND 
-                to_timestamp(a.sys_updated_on, 'dd-MM-yyyy HH:mm:ss') = b.latest_timestamp
-                """
-        return self.spark.sql(query)

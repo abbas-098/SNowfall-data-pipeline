@@ -30,10 +30,9 @@ class ProcessedChangeRequest(TransformBase):
         4. Exploding the columns
         5. Joining with location table
         6. Filters passed records
-        7. Gets unique records
-        8. Drops unnecessary columns
-        9. Selecting columns to take to processed layer
-        10. Change column names and schema.
+        7. Drops unnecessary columns
+        8. Selecting columns to take to processed layer
+        9. Change column names and schema.
 
         Parameters:
         - df (DataFrame): Input DataFrame.
@@ -60,13 +59,10 @@ class ProcessedChangeRequest(TransformBase):
         # Step 6: Filters passed records
         df = self.filter_quality_result(df,partition_column_drop=['created_year','created_month'])
 
-        # Step 7: Gets unique records
-        df = self.get_unique_records_sql(df)
-
-        # Step 8: Drops unnecessary columns
+        # Step 7: Drops unnecessary columns
         df = self.drop_columns_for_processed(df)
 
-        # Step 9: Selecting Columns that I want to take to processed layer
+        # Step 8: Selecting Columns that I want to take to processed layer
         df = df.select(
             'active',
             'activity_due',
@@ -229,7 +225,7 @@ class ProcessedChangeRequest(TransformBase):
             'cdc_timestamp'
         )
 
-        # Step 10. Changes column names and schema
+        # Step 9. Changes column names and schema
         column_mapping = {
             'number': ('change_request_number', 'string'),
             'restaurant_full_name': ('restaurant_full_name', 'string'),
@@ -421,7 +417,25 @@ class ProcessedChangeRequest(TransformBase):
                 .save(save_output_path)
 
                 # Execute Athena query to create the table
-                self.aws_instance.create_athena_delta_table('processed', 'service_now_change_request', save_output_path, self.athena_output_path)
+                execution_query_id = self.aws_instance.create_athena_delta_table('processed', 'service_now_change_request', save_output_path, self.athena_output_path)
+
+                # Change string data type to timestamp via glue schema
+                if self.aws_instance.check_query_status(execution_query_id) is True:
+                    timestamp_columns = [
+                        'sys_created_timestamp',
+                        'sys_updated_timestamp',
+                        'approval_set_timestamp',
+                        'end_date_timestamp',
+                        'work_start_timestamp',
+                        'start_date_timestamp',
+                        'closed_timestamp',
+                        'opened_timestamp',
+                        'work_end_timestamp',
+                        'cab_date_time_timestamp',
+                        'conflict_last_run_timestamp',
+                        'cdc_timestamp'
+                    ]
+                    self.aws_instance.update_table_columns_to_timestamp('processed','service_now_change_request',timestamp_columns)
                 
             else:
 
@@ -438,27 +452,6 @@ class ProcessedChangeRequest(TransformBase):
             
             self.logger.info(f'Finished running the {self.__class__.__name__} pipeline!')
 
-
-    @transformation_timer
-    def get_unique_records_sql(self, df):
-        """
-        Run the SQL query on the dataframe.
-        """
-        self.logger.info('Running the get_unique_records function.')
-        df.createOrReplaceTempView("my_dataframe")
-        query =  """
-                SELECT a.*
-                FROM my_dataframe a
-                INNER JOIN (
-                    SELECT number,u_site, MAX(to_timestamp(sys_updated_on, 'dd-MM-yyyy HH:mm:ss')) AS latest_timestamp
-                    FROM my_dataframe
-                    GROUP BY number,u_site
-                ) b ON a.number = b.number AND 
-                       a.u_site = b.u_site AND 
-                to_timestamp(a.sys_updated_on, 'dd-MM-yyyy HH:mm:ss') = b.latest_timestamp
-                """
-        return self.spark.sql(query)
-    
 
     @transformation_timer
     def process_change_request(self,df, column_name):

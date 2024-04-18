@@ -8,6 +8,7 @@ class PreparationLocation(TransformBase):
     def __init__(self, spark, sc, glueContext):
         super().__init__(spark, sc, glueContext)
         self.spark.conf.set("spark.sql.shuffle.partitions", "5") 
+        self.spark.conf.set("spark.databricks.delta.schema.autoMerge.enabled", "true")
         self.pipeline_config = self.full_configs[self.datasets]
         self.dq_rule = dq_rules.get(self.datasets)
         self.file_path = "service_now/location"
